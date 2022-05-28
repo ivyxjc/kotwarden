@@ -20,7 +20,7 @@ plugins {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(11))
     }
 }
 
@@ -53,6 +53,8 @@ dependencies {
     implementation("org.kodein.di:kodein-di:$kodeinVersion")
 
     implementation("org.bouncycastle:bcprov-jdk18on:$bouncyCastleVersion")
+
+    implementation("com.amazonaws:aws-lambda-java-core:1.2.1")
 
     implementation(project.dependencies.platform("software.amazon.awssdk:bom:$dynamodbSdkVersion"))
     implementation("software.amazon.awssdk:dynamodb:$dynamodbSdkVersion")

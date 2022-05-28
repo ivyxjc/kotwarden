@@ -9,5 +9,5 @@ val dotenv = dotenv {
     ignoreIfMissing = true
 }
 
-val awsAccessKey = dotenv["AWS_ACCESS_KEY"]!!
-val awsAccessSecret = dotenv["AWS_ACCESS_SECRET"]!!
+val awsAccessKey = dotenv["AWS_ACCESS_KEY_ID"]!!
+val awsAccessSecret = dotenv["AWS_SECRET_ACCESS_KEY"]!!

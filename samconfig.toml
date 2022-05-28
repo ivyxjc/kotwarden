@@ -3,8 +3,8 @@ version = 0.1
 [default.deploy]
 [default.deploy.parameters]
 stack_name = "bitwarden"
-s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-83szcbook788"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-8p0307dqx1zo"
 s3_prefix = "bitwarden"
-region = "us-west-1"
+region = "us-west-2"
 capabilities = "CAPABILITY_IAM"
 image_repositories = []

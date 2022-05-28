@@ -14,3 +14,23 @@ Resources:
             ProvisionedThroughput:
                 ReadCapacityUnits: 1
                 WriteCapacityUnits: 1
+
+    KotWardenFunction:
+        Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+        Properties:
+            CodeUri: .
+            FunctionName: !Sub KotWarden-Handle
+            Handler: com.ivyxjc.kotwarden.Server::handleRequest
+            Runtime: java11
+            Timeout: 30
+            Architectures:
+                - arm64
+            MemorySize: 512
+            Policies:
+                - AmazonDynamoDBFullAccess
+            Events:
+                ApiEvent:
+                    Type: HttpApi
+                    Properties:
+                        Method: ANY
+                        Path: /{proxy+}

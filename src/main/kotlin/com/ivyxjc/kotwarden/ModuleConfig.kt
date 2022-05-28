@@ -20,7 +20,7 @@ object ModuleConfig {
     }
 
     private val dynamodbModule = DI.Module("dynamodb") {
-        val c = DynamoDbClient.builder().region(Region.US_WEST_1)
+        val c = DynamoDbClient.builder().region(Region.US_WEST_2)
             .credentialsProvider(
                 StaticCredentialsProvider.create(
                     AwsBasicCredentials.create(
