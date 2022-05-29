@@ -1,20 +1,13 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Resources:
-    DynamoDBTable:
-        Type: AWS::DynamoDB::Table
+    KotWardenHttpApi:
+        Type: AWS::Serverless::HttpApi
         Properties:
-            TableName: user
-            AttributeDefinitions:
-                -   AttributeName: Email
-                    AttributeType: S
-            KeySchema:
-                -   AttributeName: Email
-                    KeyType: HASH
-            ProvisionedThroughput:
-                ReadCapacityUnits: 1
-                WriteCapacityUnits: 1
-
+            StageName: $default
+            DefaultRouteSettings:
+                ThrottlingBurstLimit: 5
+                ThrottlingRateLimit: 10
     KotWardenFunction:
         Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
         Properties:
@@ -22,15 +15,18 @@ Resources:
             FunctionName: !Sub KotWarden-Handle
             Handler: com.ivyxjc.kotwarden.Server::handleRequest
             Runtime: java11
-            Timeout: 30
+            Timeout: 15
+            Tracing: Active
             Architectures:
-                - arm64
-            MemorySize: 512
+                - x86_64
+            MemorySize: 832
             Policies:
                 - AmazonDynamoDBFullAccess
             Events:
                 ApiEvent:
+                    ApiId: !Ref 'KotWardenHttpApi'
                     Type: HttpApi
                     Properties:
                         Method: ANY
                         Path: /{proxy+}
+                        TimeoutInMillis: 5000
