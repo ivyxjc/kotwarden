@@ -38,6 +38,11 @@ repositories {
     maven { url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap") }
 }
 
+configurations.implementation {
+    exclude("software.amazon.awssdk", "netty-nio-client")
+    exclude("software.amazon.awssdk", "apache-client")
+}
+
 dependencies {
     implementation("ch.qos.logback:logback-classic:$logback_version")
 
@@ -59,6 +64,7 @@ dependencies {
     implementation(project.dependencies.platform("software.amazon.awssdk:bom:$dynamodbSdkVersion"))
     implementation("software.amazon.awssdk:dynamodb:$dynamodbSdkVersion")
     implementation("software.amazon.awssdk:dynamodb-enhanced:$dynamodbSdkVersion")
+    implementation("software.amazon.awssdk:url-connection-client:$dynamodbSdkVersion")
 
     implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
 
