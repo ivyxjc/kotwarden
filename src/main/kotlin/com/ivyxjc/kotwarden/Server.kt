@@ -21,7 +21,7 @@ class Server : KotlessAWS() {
      */
     init {
         val repo by ModuleConfig.kodein.instance<UserRepository>()
-        repo.findByUser("sample@example.com")
+        repo.findByEmail("sample@example.com")
     }
 
     override fun prepare(app: Application) {

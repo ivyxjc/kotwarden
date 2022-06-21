@@ -1,6 +1,7 @@
 package com.ivyxjc.kotwarden.plugins
 
 import com.ivyxjc.kotwarden.web.controller.AccountController
+import com.ivyxjc.kotwarden.web.controller.IdentityController
 import io.ktor.server.routing.*
 
 
@@ -9,8 +10,8 @@ fun Routing.account(accountController: AccountController) {
         post("register") {
             accountController.register(this.context)
         }
-        post("login") {
-            accountController.login(this.context)
+        post("prelogin") {
+            accountController.preLogin(this.context)
         }
         get("health") {
             accountController.health(this.context)

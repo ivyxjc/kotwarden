@@ -1,5 +1,6 @@
 package com.ivyxjc.kotwarden.model
 
+import com.ivyxjc.kotwarden.Config
 import com.ivyxjc.kotwarden.util.hashPassword
 import com.ivyxjc.kotwarden.web.model.RegisterRequest
 import org.mapstruct.Mapper
@@ -17,8 +18,6 @@ import java.util.*
 class User {
     companion object {
         const val TABLE_NAME = "user"
-        const val KDF_TYPE = 0
-        const val KDF_ITERATIONS = 100000
         val converter: UserConverter = Mappers.getMapper(UserConverter::class.java)
     }
 
@@ -59,17 +58,22 @@ class User {
     @get:DynamoDbAttribute("MasterPasswordHash")
     var masterPasswordHash: String? = null
         set(masterPasswordHash) {
-            field = hashPassword(masterPasswordHash!!, this.salt, KDF_ITERATIONS)
+            field = hashPassword(masterPasswordHash!!, this.salt, Config.kdfIterations)
         }
 
     @get:DynamoDbAttribute("Salt")
     var salt: ByteArray = ByteArray(32)
 
     @get:DynamoDbAttribute("Kdf")
-    var kdf: Int = KDF_TYPE
+    var kdf: Int = Config.kdf
 
     @get:DynamoDbAttribute("KdfIterations")
-    var kdfIterations: Int = KDF_ITERATIONS
+    var kdfIterations: Int = Config.kdfIterations
+
+
+    // TODO: 2022/6/21 default from config 
+    @get:DynamoDbAttribute("enabled")
+    var enabled: Boolean = true
 
     init {
         SecureRandom().nextBytes(this.salt)
@@ -78,6 +82,9 @@ class User {
 
 @Mapper
 interface UserConverter {
+    /**
+     * missing required property: id
+     */
     @Mappings(
         Mapping(source = "keys.encryptedPrivateKey", target = "encryptedPrivateKey"),
         Mapping(source = "keys.publicKey", target = "publicKey")

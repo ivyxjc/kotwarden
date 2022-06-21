@@ -13,6 +13,7 @@ data class RegisterRequest(
     val name: String,
     val key: String? = null,
     val keys: KeysRequest? = null,
+    // user invitation token
     val token: String? = null,
     @kotlinx.serialization.Serializable(with = UUIDSerializer::class) val organizationUserId: UUID? = null,
     val kdf: Int? = null,

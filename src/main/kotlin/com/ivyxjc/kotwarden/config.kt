@@ -9,5 +9,15 @@ val dotenv = dotenv {
     ignoreIfMissing = true
 }
 
-val awsAccessKey = dotenv["AWS_ACCESS_KEY_ID"]!!
-val awsAccessSecret = dotenv["AWS_SECRET_ACCESS_KEY"]!!
+class Config {
+    companion object {
+        const val kdfIterations = 100000
+        const val kdf = 0
+        fun isSignupAllowed(email: String): Boolean {
+            // todo check whether sign up is allowed or not
+            return true
+        }
+
+    }
+
+}
