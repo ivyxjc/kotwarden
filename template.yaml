@@ -24,9 +24,9 @@ Resources:
                 - AmazonDynamoDBFullAccess
             Events:
                 ApiEvent:
-                    ApiId: !Ref 'KotWardenHttpApi'
                     Type: HttpApi
                     Properties:
+                        ApiId: !Ref 'KotWardenHttpApi'
                         Method: ANY
                         Path: /{proxy+}
                         TimeoutInMillis: 5000
