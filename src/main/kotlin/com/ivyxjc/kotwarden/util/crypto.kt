@@ -13,12 +13,7 @@ fun hashPassword(secret: String, salt: ByteArray, iterations: Int): String {
     return Hex.toHexString(skf.generateSecret(pbeKeySpec).encoded)
 }
 
-fun main() {
-    print(
-        hashPassword(
-            "5PO2eUlyldjG00pnON/13+zyIGbQo8iAVgtThsH5dC0=",
-            "salt".toByteArray(),
-            1000
-        )
-    )
+fun verifyPassword(secret: String, salt: ByteArray, passwordHash: String, iterations: Int): Boolean {
+    val hashedPassword = hashPassword(secret, salt, iterations)
+    return hashedPassword == passwordHash
 }

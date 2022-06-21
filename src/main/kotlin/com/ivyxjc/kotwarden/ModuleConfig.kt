@@ -2,6 +2,7 @@ package com.ivyxjc.kotwarden
 
 import com.ivyxjc.kotwarden.web.controller.AccountController
 import com.ivyxjc.kotwarden.web.service.AccountService
+import com.ivyxjc.kotwarden.web.service.IdentityService
 import com.ivyxjc.kotwarden.web.service.UserRepository
 import org.kodein.di.DI
 import org.kodein.di.bindSingleton
@@ -19,6 +20,7 @@ object ModuleConfig {
         bindSingleton { UserRepository(instance()) }
         bindSingleton { AccountService(instance()) }
         bindSingleton { AccountController(instance()) }
+        bindSingleton { IdentityService(instance()) }
     }
 
     private val dynamodbModule = DI.Module("dynamodb") {

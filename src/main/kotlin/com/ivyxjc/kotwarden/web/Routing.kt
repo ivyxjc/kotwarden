@@ -16,7 +16,15 @@ fun Routing.account(accountController: AccountController) {
         get("health") {
             accountController.health(this.context)
         }
+    }
 
+}
+
+fun Routing.identity(identityController: IdentityController) {
+    route("identity") {
+        post("connect/token") {
+            identityController.login(this.context)
+        }
     }
 }
 
