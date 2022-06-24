@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Resources:
-    DynamoDBTable:
+    UserTable:
         Type: AWS::DynamoDB::Table
         Properties:
             TableName: user
@@ -10,6 +10,19 @@ Resources:
                     AttributeType: S
             KeySchema:
                 -   AttributeName: Email
+                    KeyType: HASH
+            ProvisionedThroughput:
+                ReadCapacityUnits: 1
+                WriteCapacityUnits: 1
+    DeviceTable:
+        Type: AWS::DynamoDB::Table
+        Properties:
+            TableName: device
+            AttributeDefinitions:
+                -   AttributeName: Id
+                    AttributeType: S
+            KeySchema:
+                -   AttributeName: Id
                     KeyType: HASH
             ProvisionedThroughput:
                 ReadCapacityUnits: 1

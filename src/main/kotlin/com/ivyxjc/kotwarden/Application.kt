@@ -24,8 +24,8 @@ fun Application.main() {
     val identityController by ModuleConfig.kodein.instance<IdentityController>()
     install(StatusPages) {
         exception<Throwable> { call, cause ->
+            this@main.log.error("inner error", cause)
             call.respondText(text = cause.message ?: "", status = HttpStatusCode.InternalServerError)
-            print("")
             throw cause
         }
     }

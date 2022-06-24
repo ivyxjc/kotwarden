@@ -1,9 +1,8 @@
 package com.ivyxjc.kotwarden
 
 import com.ivyxjc.kotwarden.web.controller.AccountController
-import com.ivyxjc.kotwarden.web.service.AccountService
-import com.ivyxjc.kotwarden.web.service.IdentityService
-import com.ivyxjc.kotwarden.web.service.UserRepository
+import com.ivyxjc.kotwarden.web.controller.IdentityController
+import com.ivyxjc.kotwarden.web.service.*
 import org.kodein.di.DI
 import org.kodein.di.bindSingleton
 import org.kodein.di.instance
@@ -18,9 +17,12 @@ object ModuleConfig {
     val log = LoggerFactory.getLogger(ModuleConfig::class.java)
     private val userModule = DI.Module("userModule") {
         bindSingleton { UserRepository(instance()) }
+        bindSingleton { DeviceRepository(instance()) }
         bindSingleton { AccountService(instance()) }
+        bindSingleton { IdentityService(instance(), instance()) }
+        bindSingleton { DeviceService(instance()) }
         bindSingleton { AccountController(instance()) }
-        bindSingleton { IdentityService(instance()) }
+        bindSingleton { IdentityController(instance()) }
     }
 
     private val dynamodbModule = DI.Module("dynamodb") {

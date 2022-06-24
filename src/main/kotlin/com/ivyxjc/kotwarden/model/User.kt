@@ -1,7 +1,6 @@
 package com.ivyxjc.kotwarden.model
 
 import com.ivyxjc.kotwarden.Config
-import com.ivyxjc.kotwarden.util.hashPassword
 import com.ivyxjc.kotwarden.web.model.RegisterRequest
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
@@ -12,7 +11,6 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey
 import java.security.SecureRandom
-import java.util.*
 
 @DynamoDbBean
 class User {
@@ -23,7 +21,7 @@ class User {
 
     constructor()
 
-    constructor(email: String, id: UUID, masterPasswordHash: String?) {
+    constructor(email: String, id: String, masterPasswordHash: String?) {
         this.email = email
         this.id = id
         this.masterPasswordHint = masterPasswordHash
@@ -35,7 +33,7 @@ class User {
 
     @get:DynamoDbSortKey
     @get:DynamoDbAttribute("Id")
-    lateinit var id: UUID
+    lateinit var id: String
 
     @get:DynamoDbAttribute("Name")
     lateinit var name: String
@@ -57,9 +55,6 @@ class User {
 
     @get:DynamoDbAttribute("MasterPasswordHash")
     var masterPasswordHash: String? = null
-        set(masterPasswordHash) {
-            field = hashPassword(masterPasswordHash!!, this.salt, Config.kdfIterations)
-        }
 
     @get:DynamoDbAttribute("Salt")
     var salt: ByteArray = ByteArray(32)

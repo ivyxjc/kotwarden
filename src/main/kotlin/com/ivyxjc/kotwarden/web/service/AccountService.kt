@@ -2,6 +2,7 @@ package com.ivyxjc.kotwarden.web.service
 
 import com.ivyxjc.kotwarden.Config
 import com.ivyxjc.kotwarden.model.User
+import com.ivyxjc.kotwarden.util.hashPassword
 import com.ivyxjc.kotwarden.web.model.PreLoginRequest
 import com.ivyxjc.kotwarden.web.model.PreLoginResponse
 import com.ivyxjc.kotwarden.web.model.RegisterRequest
@@ -50,7 +51,8 @@ class AccountService(private val userRepository: UserRepository) : IAccountServi
             // todo: check user invitation
             if (Config.isSignupAllowed(registerReq.email)) {
                 user = User.converter.toModel(registerReq)
-                user.id = UUID.randomUUID()
+                user.masterPasswordHash = hashPassword(registerReq.masterPasswordHash, user.salt, user.kdfIterations)
+                user.id = UUID.randomUUID().toString()
                 userRepository.save(user)
             } else {
                 TODO("throw http exception if user email is not allowed to sign up")

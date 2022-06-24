@@ -9,28 +9,40 @@ import io.ktor.server.response.*
 
 class IdentityController(private val identityService: IIdentityService) {
     suspend fun login(ctx: ApplicationCall) {
-        ctx.receive<IdentityConnectData>().apply {
-            val preLoginResponse = when (this.scope) {
+        ctx.receive<Parameters>().apply {
+            val connectData = IdentityConnectData(
+                grantType = this["grant_type"]!!,
+                refreshToken = this["refresh_token"],
+                scope = this["scope"],
+                clientId = this["client_id"],
+                password = this["password"],
+                username = this["username"],
+                deviceIdentifier = this["deviceIdentifier"],
+                deviceName = this["deviceName"],
+                deviceType = this["deviceType"],
+                clientSecret = this["clientSecret"]
+            )
+            val preLoginResponse = when (connectData.grantType) {
                 "refresh_token" -> {
-                    check(this.refreshToken, "refresh_token cannot be blank")
-                    identityService.refreshToken(this)
+                    check(connectData.refreshToken, "refresh_token cannot be blank")
+                    identityService.refreshToken(connectData)
                 }
                 "password" -> {
-                    check(this.clientId, "client_id cannot be blank")
-                    check(this.password, "password cannot be blank")
-                    check(this.scope, "")
-                    check(this.username, "")
+                    check(connectData.clientId, "client_id cannot be blank")
+                    check(connectData.password, "password cannot be blank")
+                    check(connectData.scope, "")
+                    check(connectData.username, "")
 
-                    check(this.deviceIdentifier, "")
-                    check(this.deviceName, "")
-                    check(this.deviceType, "")
-                    identityService.passwordLogin(this)
+                    check(connectData.deviceIdentifier, "")
+                    check(connectData.deviceName, "")
+                    check(connectData.deviceType, "")
+                    identityService.passwordLogin(connectData)
                 }
                 "client_credentials" -> {
-                    check(this.clientId, "")
-                    check(this.clientSecret, "")
-                    check(this.scope, "")
-                    identityService.apiKeyLogin(this)
+                    check(connectData.clientId, "")
+                    check(connectData.clientSecret, "")
+                    check(connectData.scope, "")
+                    identityService.apiKeyLogin(connectData)
                 }
                 else -> {
                     error("Invalid scope")
