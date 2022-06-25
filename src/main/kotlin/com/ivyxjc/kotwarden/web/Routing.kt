@@ -6,7 +6,7 @@ import io.ktor.server.routing.*
 
 
 fun Routing.account(accountController: AccountController) {
-    route("accounts") {
+    route("api/accounts") {
         post("register") {
             accountController.register(this.context)
         }

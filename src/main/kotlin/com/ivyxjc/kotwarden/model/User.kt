@@ -36,7 +36,7 @@ class User {
     lateinit var id: String
 
     @get:DynamoDbAttribute("Name")
-    lateinit var name: String
+    var name: String? = null
 
     @get:DynamoDbAttribute("Token")
     var token: String? = null

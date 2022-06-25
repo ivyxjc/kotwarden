@@ -10,7 +10,7 @@ data class RegisterRequest(
     val email: String,
     val masterPasswordHash: String,
     val masterPasswordHint: String? = null,
-    val name: String,
+    val name: String?,
     val key: String? = null,
     val keys: KeysRequest? = null,
     // user invitation token

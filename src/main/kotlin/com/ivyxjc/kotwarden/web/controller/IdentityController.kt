@@ -22,7 +22,7 @@ class IdentityController(private val identityService: IIdentityService) {
                 deviceType = this["deviceType"],
                 clientSecret = this["clientSecret"]
             )
-            val preLoginResponse = when (connectData.grantType) {
+            val loginResponse = when (connectData.grantType) {
                 "refresh_token" -> {
                     check(connectData.refreshToken, "refresh_token cannot be blank")
                     identityService.refreshToken(connectData)
@@ -48,7 +48,7 @@ class IdentityController(private val identityService: IIdentityService) {
                     error("Invalid scope")
                 }
             }
-            ctx.respond(HttpStatusCode.OK, preLoginResponse)
+            ctx.respond(HttpStatusCode.OK, loginResponse)
         }
     }
 
