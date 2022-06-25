@@ -2,6 +2,7 @@ package com.ivyxjc.kotwarden.web.service
 
 import com.ivyxjc.kotwarden.Config
 import com.ivyxjc.kotwarden.model.User
+import com.ivyxjc.kotwarden.util.convert
 import com.ivyxjc.kotwarden.util.hashPassword
 import com.ivyxjc.kotwarden.web.model.PreLoginRequest
 import com.ivyxjc.kotwarden.web.model.PreLoginResponse
@@ -9,18 +10,40 @@ import com.ivyxjc.kotwarden.web.model.RegisterRequest
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient
 import software.amazon.awssdk.enhanced.dynamodb.Key
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest
 import java.util.*
 
-class UserRepository(private val client: DynamoDbEnhancedClient) {
+interface IUserRepository {
+    fun findByEmail(email: String): User?
+    fun findById(id: String): User?
+    fun save(user: User)
+}
+
+class UserRepository(private val client: DynamoDbEnhancedClient) : IUserRepository {
     private val schema = TableSchema.fromBean(User::class.java)
     private val table = client.table(User.TABLE_NAME, schema)
 
-    fun findByEmail(email: String): User? {
-        val key = Key.builder().partitionValue(email).build()
+    override fun findByEmail(email: String): User? {
+        val queryConditional = QueryConditional.keyEqualTo(Key.builder().partitionValue(email).build())
+        val idx = table.index(User.Email_INDEX)
+        val iter = idx.query(
+            QueryEnhancedRequest.builder().queryConditional(queryConditional).build()
+        )
+        val list = convert(iter)
+        return if (list.isNotEmpty()) {
+            list[0]
+        } else {
+            null
+        }
+    }
+
+    override fun findById(id: String): User? {
+        val key = Key.builder().partitionValue(id).build()
         return table.getItem(key)
     }
 
-    fun save(user: User) {
+    override fun save(user: User) {
         return table.putItem(user)
     }
 }

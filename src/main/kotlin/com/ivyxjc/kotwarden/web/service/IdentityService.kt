@@ -16,15 +16,28 @@ interface IIdentityService {
 class IdentityService(private val userRepository: UserRepository, private val deviceService: DeviceService) :
     IIdentityService {
     override fun refreshToken(connectData: IdentityConnectData): LoginResponse {
-        if (connectData.scope != "api offline_access") {
-            error("Scope not supported")
-        }
+        val scope = "api offline_access"
+        val scopeList = listOf("api", "offline_access")
 
-        // TODO: 2022/6/20  RateLimit the login
-        val username = connectData.username!!.trim()
-        val user = userRepository.findByEmail(username)
-
-        TODO()
+        // TODO: 2022/6/20  RateLimit the refresh token
+        val device = deviceService.findByRefreshToken(connectData.refreshToken!!)
+            ?: TODO("throw 401, device not found")
+        val user = userRepository.findById(device.userId) ?: TODO("500, fail to get user")
+        val tokenPair = deviceService.refreshToken(device, user, scopeList)
+        deviceService.save(device)
+        return LoginResponse(
+            accessToken = tokenPair.first,
+            expiresIn = tokenPair.second,
+            tokenType = "Bearer",
+            refreshToken = device.refreshToken,
+            key = user.key,
+            privateKey = user.encryptedPrivateKey,
+            kdf = user.kdf,
+            kdfIterations = user.kdfIterations,
+            resetMasterPassword = false,
+            scope = scope,
+            unofficialServer = true
+        )
     }
 
     override fun passwordLogin(connectData: IdentityConnectData): LoginResponse {
@@ -32,6 +45,7 @@ class IdentityService(private val userRepository: UserRepository, private val de
         if (scope != "api offline_access") {
             error("Scope not supported")
         }
+        val scopeVec = listOf("api", "offline_access")
         // TODO: 2022/6/20 RateLimit the login
         val username = connectData.username!!.trim()
         val user = userRepository.findByEmail(username) ?: error("Username or password is incorrect")
@@ -79,7 +93,7 @@ class IdentityService(private val userRepository: UserRepository, private val de
         val deviceType = DeviceType.parse(connectData.deviceType)
         val deviceId = connectData.deviceIdentifier ?: error("No device id provided")
         val deviceName = connectData.deviceName ?: error("No device name provided")
-        var device = deviceService.findByUuidAndUser(deviceId, user.id)
+        var device = deviceService.findByIdAndUser(deviceId, user.id)
         if (device == null) {
             device = Device(deviceId, user.id, deviceName, deviceType)
             return device to true

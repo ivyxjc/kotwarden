@@ -5,9 +5,12 @@ import com.auth0.jwt.algorithms.Algorithm
 import com.ivyxjc.kotwarden.Config
 import com.ivyxjc.kotwarden.model.Device
 import com.ivyxjc.kotwarden.model.User
+import com.ivyxjc.kotwarden.util.convert
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient
 import software.amazon.awssdk.enhanced.dynamodb.Key
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest
 import java.time.OffsetDateTime
 import java.util.*
 import kotlin.random.Random
@@ -30,7 +33,20 @@ class DeviceRepository(private val client: DynamoDbEnhancedClient) : IDeviceRepo
     }
 
     override fun findByRefreshToken(refreshToken: String): Device? {
-        TODO("Not yet implemented")
+        val queryConditional = QueryConditional
+            .keyEqualTo(Key.builder().partitionValue(refreshToken).build())
+        val idx = table.index(Device.REFRESH_TOKEN_INDEX)
+        val iter = idx.query(
+            QueryEnhancedRequest.builder()
+                .queryConditional(queryConditional)
+                .build()
+        )
+        val list = convert(iter)
+        return if (list.isNotEmpty()) {
+            list[0]
+        } else {
+            null
+        }
     }
 
     override fun deleteAllByUser(userId: String) {
@@ -40,13 +56,15 @@ class DeviceRepository(private val client: DynamoDbEnhancedClient) : IDeviceRepo
     override fun save(device: Device) {
         return table.putItem(device)
     }
-
-
 }
 
 class DeviceService(private val deviceRepository: DeviceRepository) {
-    fun findByUuidAndUser(uuid: String, userUuid: String): Device? {
-        return deviceRepository.findByIdAndUser(userUuid, userUuid)
+    fun findByIdAndUser(id: String, userId: String): Device? {
+        return deviceRepository.findByIdAndUser(id, userId)
+    }
+
+    fun findByRefreshToken(refreshToken: String): Device? {
+        return deviceRepository.findByRefreshToken(refreshToken)
     }
 
     fun save(device: Device) {

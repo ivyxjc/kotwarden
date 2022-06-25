@@ -6,14 +6,28 @@ Resources:
         Properties:
             TableName: user
             AttributeDefinitions:
+                -   AttributeName: Id
+                    AttributeType: S
                 -   AttributeName: Email
                     AttributeType: S
             KeySchema:
-                -   AttributeName: Email
+                -   AttributeName: Id
                     KeyType: HASH
             ProvisionedThroughput:
                 ReadCapacityUnits: 1
                 WriteCapacityUnits: 1
+            GlobalSecondaryIndexes:
+                -   ContributorInsightsSpecification:
+                        Enabled: true
+                    IndexName: "Email-Index"
+                    KeySchema:
+                        -   AttributeName: Email
+                            KeyType: HASH
+                    Projection:
+                        ProjectionType: ALL
+                    ProvisionedThroughput:
+                        ReadCapacityUnits: 1
+                        WriteCapacityUnits: 1
     DeviceTable:
         Type: AWS::DynamoDB::Table
         Properties:
@@ -21,9 +35,23 @@ Resources:
             AttributeDefinitions:
                 -   AttributeName: Id
                     AttributeType: S
+                -   AttributeName: RefreshToken
+                    AttributeType: S
             KeySchema:
                 -   AttributeName: Id
                     KeyType: HASH
             ProvisionedThroughput:
                 ReadCapacityUnits: 1
                 WriteCapacityUnits: 1
+            GlobalSecondaryIndexes:
+                -   ContributorInsightsSpecification:
+                        Enabled: true
+                    IndexName: "RefreshToken-Index"
+                    KeySchema:
+                        -   AttributeName: RefreshToken
+                            KeyType: HASH
+                    Projection:
+                        ProjectionType: ALL
+                    ProvisionedThroughput:
+                        ReadCapacityUnits: 1
+                        WriteCapacityUnits: 1

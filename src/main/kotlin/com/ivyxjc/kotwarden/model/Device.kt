@@ -8,20 +8,23 @@ import org.mapstruct.factory.Mappers
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey
 import java.time.OffsetDateTime
 
 @DynamoDbBean
 class Device {
     companion object {
         const val TABLE_NAME = "device"
+        const val REFRESH_TOKEN_INDEX = "RefreshToken-Index"
         val converter: DeviceConverter = Mappers.getMapper(DeviceConverter::class.java)
     }
+
     constructor()
 
-    constructor(id: String, userUuid: String, name: String, type: DeviceType) {
+    constructor(id: String, userId: String, name: String, type: DeviceType) {
         val now = OffsetDateTime.now()
         this.id = id
-        this.userUuid = userUuid
+        this.userId = userId
         this.createdAt = now
         this.updatedAt = now
         this.name = name
@@ -41,8 +44,8 @@ class Device {
     @get:DynamoDbAttribute("UpdatedAt")
     lateinit var updatedAt: OffsetDateTime
 
-    @get:DynamoDbAttribute("UserUuid")
-    lateinit var userUuid: String
+    @get:DynamoDbAttribute("UserId")
+    lateinit var userId: String
 
     @get:DynamoDbAttribute("Name")
     lateinit var name: String
@@ -53,6 +56,7 @@ class Device {
     @get:DynamoDbAttribute("PushToken")
     var pushToken: String? = null
 
+    @get:DynamoDbSecondaryPartitionKey(indexNames = [REFRESH_TOKEN_INDEX])
     @get:DynamoDbAttribute("RefreshToken")
     lateinit var refreshToken: String
 
