@@ -1,6 +1,7 @@
 package com.ivyxjc.kotwarden
 
 import com.ivyxjc.kotwarden.web.controller.AccountController
+import com.ivyxjc.kotwarden.web.controller.CipherController
 import com.ivyxjc.kotwarden.web.controller.IdentityController
 import com.ivyxjc.kotwarden.web.controller.SyncController
 import com.ivyxjc.kotwarden.web.service.*
@@ -15,7 +16,7 @@ import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 
 object ModuleConfig {
-    val log = LoggerFactory.getLogger(ModuleConfig::class.java)
+    private val log = LoggerFactory.getLogger(ModuleConfig::class.java)
     private val userModule = DI.Module("userModule") {
         bindSingleton { UserRepository(instance()) }
         bindSingleton { DeviceRepository(instance()) }
@@ -26,6 +27,11 @@ object ModuleConfig {
         bindSingleton { IdentityController(instance()) }
         bindSingleton { SyncService() }
         bindSingleton { SyncController(instance()) }
+        bindSingleton { FolderRepository(instance()) }
+        bindSingleton { FolderService(instance()) }
+        bindSingleton { CipherRepository(instance()) }
+        bindSingleton { CipherService(instance(), instance()) }
+        bindSingleton { CipherController(instance()) }
     }
 
     private val dynamodbModule = DI.Module("dynamodb") {

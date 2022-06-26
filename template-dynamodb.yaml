@@ -55,3 +55,32 @@ Resources:
                     ProvisionedThroughput:
                         ReadCapacityUnits: 1
                         WriteCapacityUnits: 1
+    Cipher:
+        Type: AWS::DynamoDB::Table
+        Properties:
+            TableName: cipher
+            AttributeDefinitions:
+                -   AttributeName: Id
+                    AttributeType: S
+                -   AttributeName: UserId
+                    AttributeType: S
+            KeySchema:
+                -   AttributeName: Id
+                    KeyType: HASH
+                -   AttributeName: UserId
+                    KeyType: RANGE
+            ProvisionedThroughput:
+                ReadCapacityUnits: 1
+                WriteCapacityUnits: 1
+#            GlobalSecondaryIndexes:
+#                - ContributorInsightsSpecification:
+#                      Enabled: true
+#                  IndexName: "RefreshToken-Index"
+#                  KeySchema:
+#                      - AttributeName: RefreshToken
+#                        KeyType: HASH
+#                  Projection:
+#                      ProjectionType: ALL
+#                  ProvisionedThroughput:
+#                      ReadCapacityUnits: 1
+#                      WriteCapacityUnits: 1

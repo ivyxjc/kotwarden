@@ -3,6 +3,7 @@ package com.ivyxjc.kotwarden.web.controller
 import com.ivyxjc.kotwarden.web.kotwardenPrincipal
 import com.ivyxjc.kotwarden.web.service.SyncService
 import io.ktor.server.application.*
+import io.ktor.server.response.*
 
 class SyncController(private val syncService: SyncService) {
 
@@ -10,6 +11,7 @@ class SyncController(private val syncService: SyncService) {
         ctx.apply {
             val principal = kotwardenPrincipal(this)
             syncService.sync(principal.id)
+            this.respond("message" to "Ok")
         }
     }
 

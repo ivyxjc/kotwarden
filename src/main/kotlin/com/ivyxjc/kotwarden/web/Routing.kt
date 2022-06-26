@@ -1,6 +1,7 @@
 package com.ivyxjc.kotwarden.plugins
 
 import com.ivyxjc.kotwarden.web.controller.AccountController
+import com.ivyxjc.kotwarden.web.controller.CipherController
 import com.ivyxjc.kotwarden.web.controller.IdentityController
 import com.ivyxjc.kotwarden.web.controller.SyncController
 import io.ktor.server.auth.*
@@ -30,10 +31,22 @@ fun Routing.identity(identityController: IdentityController) {
     }
 }
 
-fun Routing.cipher(syncController: SyncController) {
+fun Routing.sync(syncController: SyncController) {
     authenticate("auth-jwt") {
         get("api/sync") {
             syncController.sync(this.context)
+        }
+    }
+}
+
+fun Routing.cipher(cipherController: CipherController) {
+
+    authenticate("auth-jwt") {
+        route("api/ciphers") {
+            // Called when creating a new user-owned cipher.
+            post("") {
+                cipherController.createCiphers(this.context)
+            }
         }
     }
 }

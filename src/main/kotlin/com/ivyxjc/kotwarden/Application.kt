@@ -7,7 +7,9 @@ import com.ivyxjc.kotwarden.ModuleConfig
 import com.ivyxjc.kotwarden.plugins.account
 import com.ivyxjc.kotwarden.plugins.cipher
 import com.ivyxjc.kotwarden.plugins.identity
+import com.ivyxjc.kotwarden.plugins.sync
 import com.ivyxjc.kotwarden.web.controller.AccountController
+import com.ivyxjc.kotwarden.web.controller.CipherController
 import com.ivyxjc.kotwarden.web.controller.IdentityController
 import com.ivyxjc.kotwarden.web.controller.SyncController
 import io.ktor.http.*
@@ -29,7 +31,8 @@ fun main(args: Array<String>): Unit = EngineMain.main(args)
 fun Application.main() {
     val accountController by ModuleConfig.kodein.instance<AccountController>()
     val identityController by ModuleConfig.kodein.instance<IdentityController>()
-    val cipherController by ModuleConfig.kodein.instance<SyncController>()
+    val syncController by ModuleConfig.kodein.instance<SyncController>()
+    val cipherController by ModuleConfig.kodein.instance<CipherController>()
     install(StatusPages) {
         exception<Throwable> { call, cause ->
             this@main.log.error("inner error", cause)
@@ -40,6 +43,7 @@ fun Application.main() {
     install(Routing) {
         account(accountController)
         identity(identityController)
+        sync(syncController)
         cipher(cipherController)
     }
     install(ContentNegotiation) {
