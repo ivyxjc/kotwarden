@@ -21,6 +21,7 @@ class Config {
         private val keyPairGen = KeyPairGenerator.getInstance("RSA")
         private val keyPair = keyPairGen.genKeyPair()
 
+        const val audience = "bitwarden"
         val privateRsaKey: RSAPrivateKey = keyPair.private as RSAPrivateKey
         val publicRsaKey: RSAPublicKey = keyPair.public as RSAPublicKey
         fun isSignupAllowed(email: String): Boolean {

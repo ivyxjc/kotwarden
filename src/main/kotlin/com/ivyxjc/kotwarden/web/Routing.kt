@@ -2,6 +2,8 @@ package com.ivyxjc.kotwarden.plugins
 
 import com.ivyxjc.kotwarden.web.controller.AccountController
 import com.ivyxjc.kotwarden.web.controller.IdentityController
+import com.ivyxjc.kotwarden.web.controller.SyncController
+import io.ktor.server.auth.*
 import io.ktor.server.routing.*
 
 
@@ -24,6 +26,14 @@ fun Routing.identity(identityController: IdentityController) {
     route("identity") {
         post("connect/token") {
             identityController.login(this.context)
+        }
+    }
+}
+
+fun Routing.cipher(syncController: SyncController) {
+    authenticate("auth-jwt") {
+        get("api/sync") {
+            syncController.sync(this.context)
         }
     }
 }

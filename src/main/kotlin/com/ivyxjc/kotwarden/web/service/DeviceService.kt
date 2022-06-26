@@ -72,6 +72,7 @@ class DeviceService(private val deviceRepository: DeviceRepository) {
     }
 
     fun refreshToken(device: Device, user: User, scope: List<String>): Pair<String, Long> {
+        // TODO: 2022/6/26 always refresh token 
         if (device.refreshToken.isEmpty()) {
             device.refreshToken = Base64.getEncoder().encodeToString(Random.Default.nextBytes(64))
         }
@@ -81,9 +82,11 @@ class DeviceService(private val deviceRepository: DeviceRepository) {
         return JWT.create()
             .withNotBefore(Date(OffsetDateTime.now().toInstant().toEpochMilli()))
             .withExpiresAt(Date(OffsetDateTime.now().plusHours(Config.defaultValidityHours).toInstant().toEpochMilli()))
+            .withAudience(Config.audience)
             .withIssuer(Config.issuer)
             .withSubject(user.id)
             .withClaim("premium", true)
+            .withClaim("id", user.id)
             .withClaim("name", user.name)
             .withClaim("email", user.email)
             .withClaim("email_verified", true)
