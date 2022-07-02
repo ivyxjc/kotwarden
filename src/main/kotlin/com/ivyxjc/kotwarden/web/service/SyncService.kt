@@ -17,17 +17,19 @@ class SyncService(private val accountService: AccountService, private val cipher
     fun sync(principal: KotwardenPrincipal, userId: String): SyncResponseModel {
         val resp = SyncResponseModel()
         resp.xyObject = "sync"
-        cipherService.findByUser(userId)
-        val user = accountService.findById(principal.id) ?: notAuthorized("")
+        val user = accountService.findById(principal.id) ?: notAuthorized("User not found")
         resp.profile = User.converter.toProfileResponse(user)
-
         val ciphers = cipherService.findByUser(principal.id)
         resp.ciphers.addAll(ciphers.map {
             val r = Cipher.converter.toCipherDetailResponse(it)
-            r.login = Json.decodeFromString(it.data)
+            when (r.type) {
+                1 -> r.login = Json.decodeFromString(it.data)
+                2 -> r.secureNote = Json.decodeFromString(it.data)
+                3 -> r.card = Json.decodeFromString(it.data)
+                4 -> r.identity = Json.decodeFromString(it.data)
+                else -> error("Invalid type")
+            }
             r.data = toSome(it)
-            println("+++++++++++++++++++")
-            println(r.data)
             return@map r
         })
         return resp

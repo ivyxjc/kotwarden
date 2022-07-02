@@ -4,6 +4,7 @@ import com.ivyxjc.kotwarden.model.serializer.OffsetDatetimeNullableSerializer
 import kotlinx.serialization.SerialName
 import java.time.OffsetDateTime
 
+// 1: Login; 2: Secure Note; 3: Card; 4: Identity
 typealias CipherType = Int
 typealias CipherRepromptType = Int
 
