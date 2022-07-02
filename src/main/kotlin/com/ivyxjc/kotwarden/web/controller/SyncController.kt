@@ -10,7 +10,7 @@ class SyncController(private val syncService: SyncService) {
     suspend fun sync(ctx: ApplicationCall) {
         ctx.apply {
             val principal = kotwardenPrincipal(this)
-            this.respond(syncService.sync(principal.id))
+            this.respond(syncService.sync(principal, principal.id))
         }
     }
 

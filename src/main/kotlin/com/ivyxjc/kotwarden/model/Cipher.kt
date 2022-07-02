@@ -1,12 +1,14 @@
 package com.ivyxjc.kotwarden.model
 
 import com.ivyxjc.kotwarden.util.EMPTY_STRING
-import com.ivyxjc.kotwarden.web.model.CipherFieldModel
-import com.ivyxjc.kotwarden.web.model.CipherPasswordHistoryModel
-import com.ivyxjc.kotwarden.web.model.CipherRequestModel
-import com.ivyxjc.kotwarden.web.model.CipherResponseModel
+import com.ivyxjc.kotwarden.web.model.*
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
+import org.mapstruct.Mapping
+import org.mapstruct.Mappings
 import org.mapstruct.factory.Mappers
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean
@@ -82,11 +84,15 @@ class Cipher {
 @JvmDefaultWithCompatibility
 interface CipherConverter {
     fun mapField(field: String?): List<CipherFieldModel>? {
-        return listOf()
+        println(field)
+        if (field == null || field.isEmpty()) {
+            return null
+        }
+        return Json.decodeFromString<List<CipherFieldModel>>(field)
     }
 
     fun mapField(list: List<CipherFieldModel>?): String? {
-        return EMPTY_STRING
+        return Json.encodeToString(list)
     }
 
     fun mapData(data: String?): Map<String, String>? {
@@ -119,4 +125,12 @@ interface CipherConverter {
         resp.xObject = "cipher"
         return resp
     }
+
+    @Mappings(
+        Mapping(target = "xyObject", constant = "cipherDetails"),
+        Mapping(target = "data", ignore = true),
+        Mapping(target = "edit", constant = "true"),
+        Mapping(target = "viewPassword", constant = "true"),
+    )
+    fun toCipherDetailResponse(cipher: Cipher): CipherDetailsResponseModel
 }

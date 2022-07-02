@@ -1,6 +1,7 @@
 package com.ivyxjc.kotwarden.model
 
 import com.ivyxjc.kotwarden.Config
+import com.ivyxjc.kotwarden.web.model.ProfileResponseModel
 import com.ivyxjc.kotwarden.web.model.RegisterRequest
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
@@ -86,4 +87,10 @@ interface UserConverter {
         Mapping(source = "keys.publicKey", target = "publicKey")
     )
     fun toModel(registerReq: RegisterRequest): User
+
+
+    @Mappings(
+        Mapping(target = "xyObject", constant = "profile"),
+    )
+    fun toProfileResponse(user: User): ProfileResponseModel
 }

@@ -51,6 +51,8 @@ class UserRepository(private val client: DynamoDbEnhancedClient) : IUserReposito
 interface IAccountService {
     fun register(registerReq: RegisterRequest)
     fun preLogin(preLoginRequest: PreLoginRequest): PreLoginResponse
+
+    fun findById(id: String): User?
 }
 
 class AccountService(private val userRepository: UserRepository) : IAccountService {
@@ -81,6 +83,10 @@ class AccountService(private val userRepository: UserRepository) : IAccountServi
                 TODO("throw http exception if user email is not allowed to sign up")
             }
         }
+    }
+
+    override fun findById(id: String): User? {
+        return userRepository.findById(id)
     }
 
     fun userExists(email: String): User? {

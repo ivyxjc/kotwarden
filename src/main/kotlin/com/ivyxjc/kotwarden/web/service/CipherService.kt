@@ -61,6 +61,7 @@ class CipherService(private val cipherRepository: ICipherRepository, private val
         cipher.notes = request.notes
         cipher.passwordHistory = null
         cipher.reprompt = request.reprompt
+        cipher.fields = Json.encodeToString(request.fields)
         cipherRepository.save(cipher)
 
         val cipherResponseModel = Cipher.converter.toResponse(cipher, request)

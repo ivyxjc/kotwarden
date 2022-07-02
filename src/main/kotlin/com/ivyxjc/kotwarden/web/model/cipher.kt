@@ -4,11 +4,14 @@ import com.ivyxjc.kotwarden.model.serializer.OffsetDatetimeNullableSerializer
 import kotlinx.serialization.SerialName
 import java.time.OffsetDateTime
 
+typealias CipherType = Int
+typealias CipherRepromptType = Int
+
 // region cipher request
 @kotlinx.serialization.Serializable
 data class CipherRequestModel(
     val name: String,
-    val type: Int,
+    val type: CipherType,
     val organizationId: String? = null,
     val folderId: String? = null,
     val favorite: Boolean? = null,
@@ -28,7 +31,7 @@ data class CipherRequestModel(
 
 @kotlinx.serialization.Serializable
 data class CipherFieldModel(
-    val type: Int? = null,
+    val type: CipherType? = null,
     val name: String? = null,
     val value: String? = null
 )
@@ -92,7 +95,7 @@ data class CipherIdentityModel(
 
 @kotlinx.serialization.Serializable
 data class CipherSecureNoteModel(
-    val type: Int? = null
+    val type: CipherType? = null
 )
 
 @kotlinx.serialization.Serializable
@@ -112,7 +115,7 @@ data class CipherResponseModel(
     var viewPassword: Boolean? = null,
     val id: String? = null,
     val organizationId: String? = null,
-    val type: Int? = null,
+    val type: CipherType? = null,
     val data: Map<String, String>? = null,
     val name: String? = null,
     val notes: String? = null,

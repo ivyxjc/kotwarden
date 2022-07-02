@@ -51,6 +51,7 @@ fun Application.main() {
             prettyPrint = true
             isLenient = true
             ignoreUnknownKeys = true
+            encodeDefaults = true
         })
     }
     install(Authentication) {
