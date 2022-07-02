@@ -25,7 +25,7 @@ object ModuleConfig {
         bindSingleton { AccountController(instance()) }
         bindSingleton { IdentityService(instance(), instance()) }
         bindSingleton { IdentityController(instance()) }
-        bindSingleton { SyncService() }
+        bindSingleton { SyncService(instance()) }
         bindSingleton { SyncController(instance()) }
         bindSingleton { FolderRepository(instance()) }
         bindSingleton { FolderService(instance()) }

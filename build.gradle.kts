@@ -5,7 +5,7 @@ val kotlin_version: String by project
 val logback_version: String by project
 val kodeinVersion = "7.11.0"
 val dynamodbSdkVersion = "2.17.192"
-val mapstructVersion = "1.5.0.RC1"
+val mapstructVersion = "1.5.2.Final"
 val bouncyCastleVersion = "1.71"
 
 plugins {
@@ -20,7 +20,7 @@ plugins {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
+        languageVersion.set(JavaLanguageVersion.of(8))
     }
 }
 
@@ -75,6 +75,7 @@ dependencies {
 
     implementation("org.mapstruct:mapstruct:$mapstructVersion")
     kapt("org.mapstruct:mapstruct-processor:$mapstructVersion")
+    kapt("io.github.olxmute:mapstruct-kotlin-builder-generator:0.0.2")
 
     implementation("com.auth0:java-jwt:3.19.2")
 
@@ -90,6 +91,7 @@ kapt {
 val compileKotlin: KotlinCompile by tasks
 compileKotlin.kotlinOptions {
     jvmTarget = "1.8"
+    freeCompilerArgs = listOf("-Xjvm-default=all")
 }
 val compileTestKotlin: KotlinCompile by tasks
 compileTestKotlin.kotlinOptions {

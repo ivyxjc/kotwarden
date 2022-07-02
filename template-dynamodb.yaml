@@ -65,9 +65,9 @@ Resources:
                 -   AttributeName: UserId
                     AttributeType: S
             KeySchema:
-                -   AttributeName: Id
-                    KeyType: HASH
                 -   AttributeName: UserId
+                    KeyType: HASH
+                -   AttributeName: Id
                     KeyType: RANGE
             ProvisionedThroughput:
                 ReadCapacityUnits: 1

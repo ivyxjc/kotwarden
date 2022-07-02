@@ -2,15 +2,23 @@ package com.ivyxjc.kotwarden.web.service
 
 import com.ivyxjc.kotwarden.model.Cipher
 import com.ivyxjc.kotwarden.util.EMPTY_STRING
+import com.ivyxjc.kotwarden.util.convert
 import com.ivyxjc.kotwarden.web.model.CipherRequestModel
+import com.ivyxjc.kotwarden.web.model.CipherResponseModel
 import com.ivyxjc.kotwarden.web.model.KotwardenPrincipal
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient
+import software.amazon.awssdk.enhanced.dynamodb.Key
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional
 import java.time.OffsetDateTime
 import java.util.*
 
 interface ICipherRepository {
     fun save(cipher: Cipher)
+
+    fun findByUser(userId: String): List<Cipher>
 }
 
 class CipherRepository(private val client: DynamoDbEnhancedClient) : ICipherRepository {
@@ -20,11 +28,19 @@ class CipherRepository(private val client: DynamoDbEnhancedClient) : ICipherRepo
     override fun save(cipher: Cipher) {
         return table.putItem(cipher)
     }
+
+    override fun findByUser(userId: String): List<Cipher> {
+        val queryConditional = QueryConditional.keyEqualTo(Key.builder().partitionValue(userId).build())
+        val iter = table.query(queryConditional)
+        return convert(iter)
+    }
+
+
 }
 
 class CipherService(private val cipherRepository: ICipherRepository, private val folderService: FolderService) {
 
-    fun createCipher(kotwardenPrincipal: KotwardenPrincipal, request: CipherRequestModel) {
+    fun createCipher(kotwardenPrincipal: KotwardenPrincipal, request: CipherRequestModel): CipherResponseModel {
         val cipher = newCipher(request.type, request.name)
         cipher.userId = kotwardenPrincipal.id
 
@@ -34,24 +50,28 @@ class CipherService(private val cipherRepository: ICipherRepository, private val
             null
         }
 
-        // TODO: 2022/6/27 handle attachments
-
-        if (request.type == 1) {
-
+        cipher.data = when (request.type) {
+            1 -> Json.encodeToString(request.login)
+            2 -> Json.encodeToString(request.secureNote)
+            3 -> Json.encodeToString(request.card)
+            4 -> Json.encodeToString(request.identity)
+            else -> error("Invalid type")
         }
-
         cipher.name = request.name
         cipher.notes = request.notes
         cipher.passwordHistory = null
         cipher.reprompt = request.reprompt
-
         cipherRepository.save(cipher)
-        //
-//        moveToFolder(cipher.folderId, kotwardenPrincipal.id)
+
+        val cipherResponseModel = Cipher.converter.toResponse(cipher, request)
+        cipherResponseModel.edit = true
+        cipherResponseModel.viewPassword = true
+        cipherResponseModel.revisionDate = OffsetDateTime.now()
+        return cipherResponseModel
     }
 
-    fun moveToFolder(folderId: String, userId: String) {
-
+    fun findByUser(userId: String): List<Cipher> {
+        return cipherRepository.findByUser(userId)
     }
 
     private fun newCipher(type: Int, name: String): Cipher {

@@ -1,9 +1,10 @@
 package com.ivyxjc.kotwarden.web.model
 
-import com.ivyxjc.kotwarden.model.serializer.OffsetDatetimeSerializer
+import com.ivyxjc.kotwarden.model.serializer.OffsetDatetimeNullableSerializer
+import kotlinx.serialization.SerialName
 import java.time.OffsetDateTime
 
-
+// region cipher request
 @kotlinx.serialization.Serializable
 data class CipherRequestModel(
     val name: String,
@@ -13,15 +14,15 @@ data class CipherRequestModel(
     val favorite: Boolean? = null,
     val reprompt: Int? = null,
     val notes: String? = null,
-    val fields: Array<CipherFieldModel>? = null,
-    val passwordHistory: Array<CipherPasswordHistoryModel>? = null,
+    val fields: List<CipherFieldModel>? = null,
+    val passwordHistory: List<CipherPasswordHistoryModel>? = null,
     val attachments: Map<String, String>? = null,
     val attachments2: Map<String, CipherAttachmentModel>? = null,
     val login: CipherLoginModel? = null,
     val card: CipherCardModel? = null,
     val identity: CipherIdentityModel? = null,
     val secureNote: CipherSecureNoteModel? = null,
-    @kotlinx.serialization.Serializable(with = OffsetDatetimeSerializer::class)
+    @kotlinx.serialization.Serializable(with = OffsetDatetimeNullableSerializer::class)
     val lastKnownRevisionDate: OffsetDateTime? = null
 )
 
@@ -35,7 +36,7 @@ data class CipherFieldModel(
 @kotlinx.serialization.Serializable
 data class CipherPasswordHistoryModel(
     val password: String,
-    @kotlinx.serialization.Serializable(with = OffsetDatetimeSerializer::class)
+    @kotlinx.serialization.Serializable(with = OffsetDatetimeNullableSerializer::class)
     val lastUsedDate: OffsetDateTime?
 )
 
@@ -48,10 +49,10 @@ data class CipherAttachmentModel(
 @kotlinx.serialization.Serializable
 data class CipherLoginModel(
     val uri: String? = null,
-    val uris: Array<CipherLoginUriModel>? = null,
+    val uris: List<CipherLoginUriModel>? = null,
     val username: String? = null,
     val password: String? = null,
-    @kotlinx.serialization.Serializable(with = OffsetDatetimeSerializer::class)
+    @kotlinx.serialization.Serializable(with = OffsetDatetimeNullableSerializer::class)
     val passwordRevisionDate: OffsetDateTime? = null,
     val totp: String? = null,
     val autofillOnPageLoad: Boolean? = null
@@ -99,3 +100,49 @@ data class CipherLoginUriModel(
     val uri: String? = null,
     val match: Int? = null
 )
+// endregion
+
+
+// region cipher response
+@kotlinx.serialization.Serializable
+data class CipherResponseModel(
+    val folderId: String? = null,
+    val favorite: Boolean? = null,
+    var edit: Boolean? = null,
+    var viewPassword: Boolean? = null,
+    val id: String? = null,
+    val organizationId: String? = null,
+    val type: Int? = null,
+    val data: Map<String, String>? = null,
+    val name: String? = null,
+    val notes: String? = null,
+    var login: CipherLoginModel? = null,
+    var card: CipherCardModel? = null,
+    var identity: CipherIdentityModel? = null,
+    var secureNote: CipherSecureNoteModel? = null,
+    var fields: List<CipherFieldModel>? = null,
+    var passwordHistory: List<CipherPasswordHistoryModel>? = null,
+    var attachments: List<AttachmentResponseModel>? = null,
+    val organizationUseTotp: Boolean? = null,
+    @kotlinx.serialization.Serializable(with = OffsetDatetimeNullableSerializer::class)
+    var revisionDate: OffsetDateTime? = null,
+    @kotlinx.serialization.Serializable(with = OffsetDatetimeNullableSerializer::class)
+    val deletedDate: OffsetDateTime? = null,
+    val reprompt: Int? = null,
+    @SerialName("object")
+    var xObject: String? = null
+)
+
+@kotlinx.serialization.Serializable
+data class AttachmentResponseModel(
+    val id: String? = null,
+    val url: String? = null,
+    val fileName: String? = null,
+    val key: String? = null,
+    val size: String? = null,
+    val sizeName: String? = null,
+    @SerialName("object")
+    val xObject: String? = null
+)
+
+// endregion

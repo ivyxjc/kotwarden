@@ -1,17 +1,31 @@
 package com.ivyxjc.kotwarden.model
 
+import com.ivyxjc.kotwarden.util.EMPTY_STRING
+import com.ivyxjc.kotwarden.web.model.CipherFieldModel
+import com.ivyxjc.kotwarden.web.model.CipherPasswordHistoryModel
+import com.ivyxjc.kotwarden.web.model.CipherRequestModel
+import com.ivyxjc.kotwarden.web.model.CipherResponseModel
+import org.mapstruct.InjectionStrategy
+import org.mapstruct.Mapper
+import org.mapstruct.factory.Mappers
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey
 import java.time.OffsetDateTime
 
 @DynamoDbBean
 class Cipher {
     companion object {
         const val TABLE_NAME = "cipher"
+        val converter: CipherConverter = Mappers.getMapper(CipherConverter::class.java)
     }
 
     @get:DynamoDbPartitionKey
+    @get:DynamoDbAttribute("UserId")
+    lateinit var userId: String
+
+    @get:DynamoDbSortKey
     @get:DynamoDbAttribute("Id")
     lateinit var id: String
 
@@ -21,8 +35,6 @@ class Cipher {
     @get:DynamoDbAttribute("UpdatedAt")
     lateinit var updatedAt: OffsetDateTime
 
-    @get:DynamoDbAttribute("UserId")
-    lateinit var userId: String
 
     @get:DynamoDbAttribute("OrganizationId")
     var organizationId: String? = null
@@ -61,4 +73,50 @@ class Cipher {
     // cipher folder
     @get:DynamoDbAttribute("FolderId")
     var folderId: String? = null
+
+    @get:DynamoDbAttribute("favorite")
+    var favorite: Boolean = false
+}
+
+@Mapper(injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@JvmDefaultWithCompatibility
+interface CipherConverter {
+    fun mapField(field: String?): List<CipherFieldModel>? {
+        return listOf()
+    }
+
+    fun mapField(list: List<CipherFieldModel>?): String? {
+        return EMPTY_STRING
+    }
+
+    fun mapData(data: String?): Map<String, String>? {
+        return mapOf()
+    }
+
+    fun mapData(map: Map<String, String>?): String? {
+        return EMPTY_STRING
+    }
+
+    fun mapPasswordHistory(data: String?): List<CipherPasswordHistoryModel> {
+        return listOf()
+    }
+
+    fun mapPasswordHistory(data: List<CipherPasswordHistoryModel>?): String? {
+        return EMPTY_STRING
+    }
+
+    fun toModel(request: CipherRequestModel): Cipher
+
+    fun toResponse(cipher: Cipher): CipherResponseModel
+
+    fun toResponse(cipher: Cipher, requestModel: CipherRequestModel): CipherResponseModel {
+        val resp = toResponse(cipher)
+        resp.fields = requestModel.fields
+        resp.login = requestModel.login
+        resp.identity = requestModel.identity
+        resp.card = requestModel.card
+        resp.secureNote = requestModel.secureNote
+        resp.xObject = "cipher"
+        return resp
+    }
 }
