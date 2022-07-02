@@ -11,7 +11,7 @@ data class AwsHttpApiRequest(
     @SerialName("queryStringParameters") val myQueryStringParameters: Map<String, String>? = mapOf(),
     val pathParameters: Map<String, String>?,
     val requestContext: RequestContext,
-    @SerialName("body") val myBody: String?,
+    @SerialName("body") val myBody: String? = null,
     private val isBase64Encoded: Boolean
 ) {
 
