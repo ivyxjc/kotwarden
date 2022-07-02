@@ -4,10 +4,7 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.ivyxjc.kotwarden.Config
 import com.ivyxjc.kotwarden.ModuleConfig
-import com.ivyxjc.kotwarden.plugins.account
-import com.ivyxjc.kotwarden.plugins.cipher
-import com.ivyxjc.kotwarden.plugins.identity
-import com.ivyxjc.kotwarden.plugins.sync
+import com.ivyxjc.kotwarden.plugins.*
 import com.ivyxjc.kotwarden.web.controller.AccountController
 import com.ivyxjc.kotwarden.web.controller.CipherController
 import com.ivyxjc.kotwarden.web.controller.IdentityController
@@ -41,6 +38,7 @@ fun Application.main() {
         }
     }
     install(Routing) {
+        health()
         account(accountController)
         identity(identityController)
         sync(syncController)

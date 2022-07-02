@@ -23,9 +23,4 @@ class AccountController(private val accountService: AccountService) {
             ctx.respond(HttpStatusCode.OK, Unit)
         }
     }
-
-    suspend fun health(ctx: ApplicationCall) {
-        ctx.apply {
-        }
-    }
 }

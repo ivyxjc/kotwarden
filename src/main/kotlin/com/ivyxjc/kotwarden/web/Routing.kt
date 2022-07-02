@@ -4,9 +4,18 @@ import com.ivyxjc.kotwarden.web.controller.AccountController
 import com.ivyxjc.kotwarden.web.controller.CipherController
 import com.ivyxjc.kotwarden.web.controller.IdentityController
 import com.ivyxjc.kotwarden.web.controller.SyncController
+import io.ktor.http.*
 import io.ktor.server.auth.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
+fun Routing.health() {
+    route("api") {
+        get("health") {
+            this.context.respond(HttpStatusCode.OK, "OK")
+        }
+    }
+}
 
 fun Routing.account(accountController: AccountController) {
     route("api/accounts") {
@@ -15,9 +24,6 @@ fun Routing.account(accountController: AccountController) {
         }
         post("prelogin") {
             accountController.preLogin(this.context)
-        }
-        get("health") {
-            accountController.health(this.context)
         }
     }
 
