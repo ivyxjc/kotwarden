@@ -1,14 +1,9 @@
-package com.ivyxjc.kotwarden.util
+@file:JvmName(name = "CommonUtil")
 
-import software.amazon.awssdk.core.pagination.sync.SdkIterable
-import software.amazon.awssdk.enhanced.dynamodb.model.Page
+package com.ivyxjc.kotwarden.util
 
 const val EMPTY_STRING = ""
 
-fun <T> convert(iter: SdkIterable<Page<T>>): List<T> {
-    val list = mutableListOf<T>()
-    for (p in iter) {
-        list.addAll(p.items())
-    }
-    return list
+fun isEmpty(str: String?): Boolean {
+    return str == null || str.isEmpty()
 }

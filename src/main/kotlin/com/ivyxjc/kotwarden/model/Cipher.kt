@@ -1,6 +1,7 @@
 package com.ivyxjc.kotwarden.model
 
 import com.ivyxjc.kotwarden.util.EMPTY_STRING
+import com.ivyxjc.kotwarden.util.isEmpty
 import com.ivyxjc.kotwarden.web.model.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -84,11 +85,10 @@ class Cipher {
 @JvmDefaultWithCompatibility
 interface CipherConverter {
     fun mapField(field: String?): List<CipherFieldModel>? {
-        println(field)
-        if (field == null || field.isEmpty()) {
+        if (isEmpty(field)) {
             return null
         }
-        return Json.decodeFromString<List<CipherFieldModel>>(field)
+        return Json.decodeFromString<List<CipherFieldModel>>(field!!)
     }
 
     fun mapField(list: List<CipherFieldModel>?): String? {

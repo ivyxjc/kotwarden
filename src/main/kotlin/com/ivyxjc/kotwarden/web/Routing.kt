@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.util.*
 
 fun Routing.health() {
     route("api") {
@@ -51,7 +52,11 @@ fun Routing.cipher(cipherController: CipherController) {
         route("api/ciphers") {
             // Called when creating a new user-owned cipher.
             post("") {
-                cipherController.createCiphers(this.context)
+                cipherController.createCipher(this.context)
+            }
+            put("{id}") {
+                val id = this.context.parameters.getOrFail<String>("id")
+                cipherController.updateCipher(this.context, id)
             }
         }
     }

@@ -9,12 +9,19 @@ import io.ktor.server.response.*
 
 class CipherController(private val cipherService: CipherService) {
 
-    suspend fun createCiphers(ctx: ApplicationCall) {
+    suspend fun createCipher(ctx: ApplicationCall) {
         ctx.apply {
             val principal = kotwardenPrincipal(this)
             val request = this.receive<CipherRequestModel>()
             this.respond(cipherService.createCipher(principal, request))
         }
+    }
 
+    suspend fun updateCipher(ctx: ApplicationCall, cipherId: String) {
+        ctx.apply {
+            val principal = kotwardenPrincipal(this)
+            val request = this.receive<CipherRequestModel>()
+            this.respond(cipherService.updateCipher(principal, cipherId, request))
+        }
     }
 }

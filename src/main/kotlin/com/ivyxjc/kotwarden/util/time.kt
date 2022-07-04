@@ -8,10 +8,10 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 
 private val log = LoggerFactory.getLogger("TimeUtils")
-val pattern = DateTimeFormatter.ofPattern("yyyy:MM:dd:HH:mm:ss.SSSSSS").withZone(ZoneOffset.UTC)
+val pattern = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXXXX").withZone(ZoneOffset.UTC)
 val patterns = listOf(pattern)
 fun parse(timeStr: String?): OffsetDateTime? {
-    if (timeStr?.isEmpty() == true) {
+    if (isEmpty(timeStr)) {
         return null
     }
     var result: OffsetDateTime? = null

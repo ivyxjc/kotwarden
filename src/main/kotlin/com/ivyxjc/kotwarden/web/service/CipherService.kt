@@ -3,6 +3,8 @@ package com.ivyxjc.kotwarden.web.service
 import com.ivyxjc.kotwarden.model.Cipher
 import com.ivyxjc.kotwarden.util.EMPTY_STRING
 import com.ivyxjc.kotwarden.util.convert
+import com.ivyxjc.kotwarden.util.isEmpty
+import com.ivyxjc.kotwarden.web.kError
 import com.ivyxjc.kotwarden.web.model.CipherRequestModel
 import com.ivyxjc.kotwarden.web.model.CipherResponseModel
 import com.ivyxjc.kotwarden.web.model.KotwardenPrincipal
@@ -19,6 +21,8 @@ interface ICipherRepository {
     fun save(cipher: Cipher)
 
     fun findByUser(userId: String): List<Cipher>
+
+    fun findById(userId: String, id: String): Cipher?
 }
 
 class CipherRepository(private val client: DynamoDbEnhancedClient) : ICipherRepository {
@@ -35,6 +39,17 @@ class CipherRepository(private val client: DynamoDbEnhancedClient) : ICipherRepo
         return convert(iter)
     }
 
+    override fun findById(userId: String, id: String): Cipher? {
+        val queryConditional = QueryConditional.keyEqualTo(Key.builder().partitionValue(userId).sortValue(id).build())
+        val iter = table.query(queryConditional)
+        val list = convert(iter)
+        return if (list.isEmpty()) {
+            null
+        } else {
+            list[0]
+        }
+    }
+
 
 }
 
@@ -42,10 +57,28 @@ class CipherService(private val cipherRepository: ICipherRepository, private val
 
     fun createCipher(kotwardenPrincipal: KotwardenPrincipal, request: CipherRequestModel): CipherResponseModel {
         val cipher = newCipher(request.type, request.name)
+        return createUpdateCipherFromRequest(cipher, request, kotwardenPrincipal)
+    }
+
+
+    fun updateCipher(
+        kotwardenPrincipal: KotwardenPrincipal, cipherId: String, request: CipherRequestModel
+    ): CipherResponseModel {
+        val cipher = findById(kotwardenPrincipal.id, cipherId) ?: kError("Cipher doesn't exist")
+        return createUpdateCipherFromRequest(cipher, request, kotwardenPrincipal)
+    }
+
+    private fun createUpdateCipherFromRequest(
+        cipher: Cipher?, request: CipherRequestModel, kotwardenPrincipal: KotwardenPrincipal
+    ): CipherResponseModel {
+        cipher!!
+        if (!isEmpty(cipher.organizationId) && cipher.organizationId !== request.organizationId) {
+            kError("Organization mismatch. Please re-sync the client before updating the cipher")
+        }
         cipher.userId = kotwardenPrincipal.id
 
-        val folder = if (request.folderId?.isEmpty() == true) {
-            folderService.findById(kotwardenPrincipal.id, kotwardenPrincipal.id) ?: error("Folder doesn't exist")
+        val folder = if (!isEmpty(request.folderId)) {
+            folderService.findById(kotwardenPrincipal.id, kotwardenPrincipal.id) ?: kError("Folder doesn't exist")
         } else {
             null
         }
@@ -55,12 +88,13 @@ class CipherService(private val cipherRepository: ICipherRepository, private val
             2 -> Json.encodeToString(request.secureNote)
             3 -> Json.encodeToString(request.card)
             4 -> Json.encodeToString(request.identity)
-            else -> error("Invalid type")
+            else -> kError("Invalid type")
         }
         cipher.name = request.name
         cipher.notes = request.notes
         cipher.passwordHistory = null
         cipher.reprompt = request.reprompt
+        cipher.folderId = folder?.id
         cipher.fields = Json.encodeToString(request.fields)
         cipherRepository.save(cipher)
 
@@ -71,8 +105,13 @@ class CipherService(private val cipherRepository: ICipherRepository, private val
         return cipherResponseModel
     }
 
+
     fun findByUser(userId: String): List<Cipher> {
         return cipherRepository.findByUser(userId)
+    }
+
+    fun findById(userId: String, cipherId: String): Cipher? {
+        return cipherRepository.findById(userId, cipherId)
     }
 
     private fun newCipher(type: Int, name: String): Cipher {

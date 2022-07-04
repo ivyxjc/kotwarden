@@ -55,11 +55,8 @@ fun Application.main() {
     install(Authentication) {
         jwt("auth-jwt") {
             verifier(
-                JWT
-                    .require(Algorithm.RSA256(Config.publicRsaKey, Config.privateRsaKey))
-                    .withAudience(Config.audience)
-                    .withIssuer(Config.issuer)
-                    .build()
+                JWT.require(Algorithm.RSA256(Config.publicRsaKey, Config.privateRsaKey)).withAudience(Config.audience)
+                    .withIssuer(Config.issuer).build()
             )
             validate { credentials ->
                 if (credentials.payload.getClaim("id").asString() != "") {
