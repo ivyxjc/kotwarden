@@ -1,9 +1,6 @@
 package com.ivyxjc.kotwarden
 
-import com.ivyxjc.kotwarden.web.controller.AccountController
-import com.ivyxjc.kotwarden.web.controller.CipherController
-import com.ivyxjc.kotwarden.web.controller.IdentityController
-import com.ivyxjc.kotwarden.web.controller.SyncController
+import com.ivyxjc.kotwarden.web.controller.*
 import com.ivyxjc.kotwarden.web.service.*
 import org.kodein.di.DI
 import org.kodein.di.bindSingleton
@@ -19,19 +16,25 @@ object ModuleConfig {
     private val log = LoggerFactory.getLogger(ModuleConfig::class.java)
     private val userModule = DI.Module("userModule") {
         bindSingleton { UserRepository(instance()) }
-        bindSingleton { DeviceRepository(instance()) }
         bindSingleton { AccountService(instance()) }
-        bindSingleton { DeviceService(instance()) }
         bindSingleton { AccountController(instance()) }
+
+        bindSingleton { DeviceRepository(instance()) }
+        bindSingleton { DeviceService(instance()) }
+
         bindSingleton { IdentityService(instance(), instance()) }
         bindSingleton { IdentityController(instance()) }
+
         bindSingleton { SyncService(instance(), instance()) }
         bindSingleton { SyncController(instance()) }
-        bindSingleton { FolderRepository(instance()) }
-        bindSingleton { FolderService(instance()) }
+
         bindSingleton { CipherRepository(instance()) }
         bindSingleton { CipherService(instance(), instance()) }
         bindSingleton { CipherController(instance()) }
+
+        bindSingleton { FolderRepository(instance()) }
+        bindSingleton { FolderService(instance()) }
+        bindSingleton { FolderController(instance()) }
     }
 
     private val dynamodbModule = DI.Module("dynamodb") {

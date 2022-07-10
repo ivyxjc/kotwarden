@@ -5,10 +5,7 @@ import com.auth0.jwt.algorithms.Algorithm
 import com.ivyxjc.kotwarden.Config
 import com.ivyxjc.kotwarden.ModuleConfig
 import com.ivyxjc.kotwarden.plugins.*
-import com.ivyxjc.kotwarden.web.controller.AccountController
-import com.ivyxjc.kotwarden.web.controller.CipherController
-import com.ivyxjc.kotwarden.web.controller.IdentityController
-import com.ivyxjc.kotwarden.web.controller.SyncController
+import com.ivyxjc.kotwarden.web.controller.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -31,6 +28,7 @@ fun Application.main() {
     val identityController by ModuleConfig.kodein.instance<IdentityController>()
     val syncController by ModuleConfig.kodein.instance<SyncController>()
     val cipherController by ModuleConfig.kodein.instance<CipherController>()
+    val folderController by ModuleConfig.kodein.instance<FolderController>()
     install(CORS) {
         allowHost(Config.corsHost)
         allowMethod(HttpMethod.Put)
@@ -57,6 +55,7 @@ fun Application.main() {
         identity(identityController)
         sync(syncController)
         cipher(cipherController)
+        folder(folderController)
     }
     install(ContentNegotiation) {
         json(Json {

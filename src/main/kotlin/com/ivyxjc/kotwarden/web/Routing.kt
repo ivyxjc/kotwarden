@@ -1,9 +1,6 @@
 package com.ivyxjc.kotwarden.plugins
 
-import com.ivyxjc.kotwarden.web.controller.AccountController
-import com.ivyxjc.kotwarden.web.controller.CipherController
-import com.ivyxjc.kotwarden.web.controller.IdentityController
-import com.ivyxjc.kotwarden.web.controller.SyncController
+import com.ivyxjc.kotwarden.web.controller.*
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
@@ -27,7 +24,6 @@ fun Routing.account(accountController: AccountController) {
             accountController.preLogin(this.context)
         }
     }
-
 }
 
 fun Routing.identity(identityController: IdentityController) {
@@ -60,6 +56,16 @@ fun Routing.cipher(cipherController: CipherController) {
             }
             post("import") {
                 cipherController.importCiphers(this.context)
+            }
+        }
+    }
+}
+
+fun Routing.folder(folderController: FolderController) {
+    authenticate("auth-jwt") {
+        route("api/folders") {
+            post("") {
+                folderController.createFolder(this.context)
             }
         }
     }

@@ -75,12 +75,29 @@ Resources:
 #            GlobalSecondaryIndexes:
 #                - ContributorInsightsSpecification:
 #                      Enabled: true
-#                  IndexName: "RefreshToken-Index"
-#                  KeySchema:
-#                      - AttributeName: RefreshToken
-#                        KeyType: HASH
-#                  Projection:
-#                      ProjectionType: ALL
-#                  ProvisionedThroughput:
-#                      ReadCapacityUnits: 1
-#                      WriteCapacityUnits: 1
+    #                  IndexName: "RefreshToken-Index"
+    #                  KeySchema:
+    #                      - AttributeName: RefreshToken
+    #                        KeyType: HASH
+    #                  Projection:
+    #                      ProjectionType: ALL
+    #                  ProvisionedThroughput:
+    #                      ReadCapacityUnits: 1
+    #                      WriteCapacityUnits: 1
+    Folder:
+        Type: AWS::DynamoDB::Table
+        Properties:
+            TableName: folder
+            AttributeDefinitions:
+                -   AttributeName: Id
+                    AttributeType: S
+                -   AttributeName: UserId
+                    AttributeType: S
+            KeySchema:
+                -   AttributeName: UserId
+                    KeyType: HASH
+                -   AttributeName: Id
+                    KeyType: RANGE
+            ProvisionedThroughput:
+                ReadCapacityUnits: 1
+                WriteCapacityUnits: 1

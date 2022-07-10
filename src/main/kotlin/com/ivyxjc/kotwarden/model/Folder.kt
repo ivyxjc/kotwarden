@@ -9,7 +9,7 @@ import java.time.OffsetDateTime
 class Folder {
 
     companion object {
-        const val TABLE_NAME = "cipher"
+        const val TABLE_NAME = "folder"
     }
 
     @get:DynamoDbPartitionKey
