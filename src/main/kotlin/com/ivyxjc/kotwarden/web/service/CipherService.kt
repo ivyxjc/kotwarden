@@ -7,6 +7,7 @@ import com.ivyxjc.kotwarden.util.isEmpty
 import com.ivyxjc.kotwarden.web.kError
 import com.ivyxjc.kotwarden.web.model.CipherRequestModel
 import com.ivyxjc.kotwarden.web.model.CipherResponseModel
+import com.ivyxjc.kotwarden.web.model.ImportCiphersRequestModel
 import com.ivyxjc.kotwarden.web.model.KotwardenPrincipal
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -66,6 +67,15 @@ class CipherService(private val cipherRepository: ICipherRepository, private val
     ): CipherResponseModel {
         val cipher = findById(kotwardenPrincipal.id, cipherId) ?: kError("Cipher doesn't exist")
         return createUpdateCipherFromRequest(cipher, request, kotwardenPrincipal)
+    }
+
+
+    fun importCiphers(
+        kotwardenPrincipal: KotwardenPrincipal, importData: ImportCiphersRequestModel
+    ) {
+        importData.ciphers?.forEach {
+            createUpdateCipherFromRequest(newCipher(it.type, it.name), it, kotwardenPrincipal)
+        }
     }
 
     private fun createUpdateCipherFromRequest(

@@ -58,6 +58,9 @@ fun Routing.cipher(cipherController: CipherController) {
                 val id = this.context.parameters.getOrFail<String>("id")
                 cipherController.updateCipher(this.context, id)
             }
+            post("import") {
+                cipherController.importCiphers(this.context)
+            }
         }
     }
 }

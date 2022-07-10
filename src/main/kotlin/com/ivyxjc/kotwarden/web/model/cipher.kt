@@ -31,6 +31,14 @@ data class CipherRequestModel(
 )
 
 @kotlinx.serialization.Serializable
+data class ImportCiphersRequestModel(
+    val folders: List<FolderRequestModel>? = null,
+    val ciphers: List<CipherRequestModel>? = null,
+    val folderRelationships: List<Pair<Int, Int>>? = null
+)
+
+
+@kotlinx.serialization.Serializable
 data class CipherFieldModel(
     val type: CipherType? = null,
     val name: String? = null,

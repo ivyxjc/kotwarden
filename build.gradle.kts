@@ -56,7 +56,7 @@ dependencies {
     implementation("io.ktor:ktor-server-content-negotiation:$ktor_version")
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
     implementation("io.ktor:ktor-server-status-pages:$ktor_version")
-
+    implementation("io.ktor:ktor-server-cors:$ktor_version")
     implementation("org.kodein.di:kodein-di:$kodeinVersion")
 
     implementation("org.bouncycastle:bcprov-jdk18on:$bouncyCastleVersion")

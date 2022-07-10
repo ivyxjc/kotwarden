@@ -42,15 +42,8 @@ class Cipher {
     @get:DynamoDbAttribute("OrganizationId")
     var organizationId: String? = null
 
-
-    /*
-        Login = 1,
-        SecureNote = 2,
-        Card = 3,
-        Identity = 4
-    */
     @get:DynamoDbAttribute("type")
-    var type: Int = 0
+    var type: CipherType = 0
 
     @get:DynamoDbAttribute("name")
     lateinit var name: String

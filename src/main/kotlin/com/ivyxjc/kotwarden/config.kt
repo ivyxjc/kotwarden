@@ -25,6 +25,7 @@ class Config {
         const val defaultValidityHours = 2L
         const val issuer = "issuer"
         const val audience = "bitwarden"
+        val corsHost = System.getenv("CORS_HOST") ?: "*"
         val privateRsaKey: RSAPrivateKey = getPrivateKey() as RSAPrivateKey
         val publicRsaKey: RSAPublicKey = getPublicKey() as RSAPublicKey
         fun isSignupAllowed(email: String): Boolean {

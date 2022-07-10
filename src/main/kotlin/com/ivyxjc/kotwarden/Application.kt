@@ -16,6 +16,7 @@ import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.cio.*
 import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -30,6 +31,19 @@ fun Application.main() {
     val identityController by ModuleConfig.kodein.instance<IdentityController>()
     val syncController by ModuleConfig.kodein.instance<SyncController>()
     val cipherController by ModuleConfig.kodein.instance<CipherController>()
+    install(CORS) {
+        allowHost(Config.corsHost)
+        allowMethod(HttpMethod.Put)
+        allowMethod(HttpMethod.Delete)
+        listOf("auth-email", "bitwarden-client-name", "bitwarden-client-version", "device-type", "pragma").forEach {
+            allowHeader(it)
+        }
+        allowHeader(HttpHeaders.Authorization)
+        allowHeader(HttpHeaders.ContentType)
+        allowHeader(HttpHeaders.CacheControl)
+        allowHeader(HttpHeaders.AccessControlAllowOrigin)
+        allowCredentials = true
+    }
     install(StatusPages) {
         exception<Throwable> { call, cause ->
             this@main.log.error("inner error", cause)
