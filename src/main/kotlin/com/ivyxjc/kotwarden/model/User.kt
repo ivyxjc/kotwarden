@@ -91,6 +91,7 @@ interface UserConverter {
 
     @Mappings(
         Mapping(target = "xyObject", constant = "profile"),
+        Mapping(target = "premium", constant = "true")
     )
     fun toProfileResponse(user: User): ProfileResponseModel
 }

@@ -59,7 +59,7 @@ data class CipherDetailsResponseModel(
     var identity: CipherIdentityModel? = null,
     var secureNote: CipherSecureNoteModel? = null,
     val fields: List<CipherFieldModel>? = null,
-    val passwordHistory: List<CipherPasswordHistoryModel>? = null,
+    var passwordHistory: List<CipherPasswordHistoryModel>? = null,
     val attachments: List<AttachmentResponseModel>? = null,
     val organizationUseTotp: Boolean? = null,
     @kotlinx.serialization.Serializable(with = OffsetDatetimeNullableSerializer::class)

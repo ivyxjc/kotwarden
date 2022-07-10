@@ -3,14 +3,13 @@ package com.ivyxjc.kotwarden.web.service
 import com.ivyxjc.kotwarden.model.Cipher
 import com.ivyxjc.kotwarden.util.EMPTY_STRING
 import com.ivyxjc.kotwarden.util.convert
+import com.ivyxjc.kotwarden.util.encodeToString
 import com.ivyxjc.kotwarden.util.isEmpty
 import com.ivyxjc.kotwarden.web.kError
 import com.ivyxjc.kotwarden.web.model.CipherRequestModel
 import com.ivyxjc.kotwarden.web.model.CipherResponseModel
 import com.ivyxjc.kotwarden.web.model.ImportCiphersRequestModel
 import com.ivyxjc.kotwarden.web.model.KotwardenPrincipal
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient
 import software.amazon.awssdk.enhanced.dynamodb.Key
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema
@@ -94,10 +93,10 @@ class CipherService(private val cipherRepository: ICipherRepository, private val
         }
 
         cipher.data = when (request.type) {
-            1 -> Json.encodeToString(request.login)
-            2 -> Json.encodeToString(request.secureNote)
-            3 -> Json.encodeToString(request.card)
-            4 -> Json.encodeToString(request.identity)
+            1 -> encodeToString(request.login)!!
+            2 -> encodeToString(request.secureNote)!!
+            3 -> encodeToString(request.card)!!
+            4 -> encodeToString(request.identity)!!
             else -> kError("Invalid type")
         }
         cipher.name = request.name
@@ -105,7 +104,8 @@ class CipherService(private val cipherRepository: ICipherRepository, private val
         cipher.passwordHistory = null
         cipher.reprompt = request.reprompt
         cipher.folderId = folder?.id
-        cipher.fields = Json.encodeToString(request.fields)
+        cipher.fields = encodeToString(request.fields)
+        cipher.passwordHistory = encodeToString(request.passwordHistory)
         cipherRepository.save(cipher)
 
         val cipherResponseModel = Cipher.converter.toResponse(cipher, request)

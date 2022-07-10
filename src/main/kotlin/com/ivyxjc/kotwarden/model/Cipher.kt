@@ -1,11 +1,10 @@
 package com.ivyxjc.kotwarden.model
 
 import com.ivyxjc.kotwarden.util.EMPTY_STRING
+import com.ivyxjc.kotwarden.util.decodeFromString
+import com.ivyxjc.kotwarden.util.encodeToString
 import com.ivyxjc.kotwarden.util.isEmpty
 import com.ivyxjc.kotwarden.web.model.*
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
@@ -79,13 +78,13 @@ class Cipher {
 interface CipherConverter {
     fun mapField(field: String?): List<CipherFieldModel>? {
         if (isEmpty(field)) {
-            return null
+            return decodeFromString(field)
         }
-        return Json.decodeFromString<List<CipherFieldModel>>(field!!)
+        return decodeFromString<List<CipherFieldModel>>(field!!)
     }
 
     fun mapField(list: List<CipherFieldModel>?): String? {
-        return Json.encodeToString(list)
+        return encodeToString(list)
     }
 
     fun mapData(data: String?): Map<String, String>? {
