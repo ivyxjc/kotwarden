@@ -19,6 +19,14 @@ class CipherController(private val cipherService: CipherService) {
         }
     }
 
+    suspend fun deleteCipher(ctx: ApplicationCall, id: String) {
+        ctx.apply {
+            val principal = kotwardenPrincipal(this)
+            cipherService.deleteCipher(principal, id)
+        }
+    }
+
+
     suspend fun updateCipher(ctx: ApplicationCall, cipherId: String) {
         ctx.apply {
             val principal = kotwardenPrincipal(this)

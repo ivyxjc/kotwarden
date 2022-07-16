@@ -22,7 +22,9 @@ interface ICipherRepository {
 
     fun findByUser(userId: String): List<Cipher>
 
-    fun findById(userId: String, id: String): Cipher?
+    fun findByUserAndId(userId: String, id: String): Cipher?
+
+    fun findById(id: String): Cipher?
 }
 
 class CipherRepository(private val client: DynamoDbEnhancedClient) : ICipherRepository {
@@ -39,7 +41,7 @@ class CipherRepository(private val client: DynamoDbEnhancedClient) : ICipherRepo
         return convert(iter)
     }
 
-    override fun findById(userId: String, id: String): Cipher? {
+    override fun findByUserAndId(userId: String, id: String): Cipher? {
         val queryConditional = QueryConditional.keyEqualTo(Key.builder().partitionValue(userId).sortValue(id).build())
         val iter = table.query(queryConditional)
         val list = convert(iter)
@@ -48,6 +50,10 @@ class CipherRepository(private val client: DynamoDbEnhancedClient) : ICipherRepo
         } else {
             list[0]
         }
+    }
+
+    override fun findById(id: String): Cipher? {
+        TODO()
     }
 
 
@@ -60,6 +66,9 @@ class CipherService(private val cipherRepository: ICipherRepository, private val
         return createUpdateCipherFromRequest(cipher, request, kotwardenPrincipal)
     }
 
+    fun deleteCipher(kotwardenPrincipal: KotwardenPrincipal, id: String): CipherResponseModel {
+        TODO()
+    }
 
     fun updateCipher(
         kotwardenPrincipal: KotwardenPrincipal, cipherId: String, request: CipherRequestModel
@@ -76,6 +85,19 @@ class CipherService(private val cipherRepository: ICipherRepository, private val
             createUpdateCipherFromRequest(newCipher(it.type, it.name), it, kotwardenPrincipal)
         }
     }
+
+    fun findByUser(userId: String): List<Cipher> {
+        return cipherRepository.findByUser(userId)
+    }
+
+    fun findById(userId: String, cipherId: String): Cipher? {
+        return cipherRepository.findByUserAndId(userId, cipherId)
+    }
+
+    private fun deleteCipherById(userId: String, id: String) {
+        TODO()
+    }
+
 
     private fun createUpdateCipherFromRequest(
         cipher: Cipher?, request: CipherRequestModel, kotwardenPrincipal: KotwardenPrincipal
@@ -113,15 +135,6 @@ class CipherService(private val cipherRepository: ICipherRepository, private val
         cipherResponseModel.viewPassword = true
         cipherResponseModel.revisionDate = OffsetDateTime.now()
         return cipherResponseModel
-    }
-
-
-    fun findByUser(userId: String): List<Cipher> {
-        return cipherRepository.findByUser(userId)
-    }
-
-    fun findById(userId: String, cipherId: String): Cipher? {
-        return cipherRepository.findById(userId, cipherId)
     }
 
     private fun newCipher(type: Int, name: String): Cipher {
