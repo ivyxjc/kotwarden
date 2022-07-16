@@ -1,5 +1,10 @@
 package com.ivyxjc.kotwarden.model
 
+import com.ivyxjc.kotwarden.web.model.FolderResponseModel
+import org.mapstruct.Mapper
+import org.mapstruct.Mapping
+import org.mapstruct.Mappings
+import org.mapstruct.factory.Mappers
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey
@@ -11,15 +16,16 @@ class Folder {
 
     companion object {
         const val TABLE_NAME = "resource"
+        val converter: FolderConverter = Mappers.getMapper(FolderConverter::class.java)
     }
 
     @get:DynamoDbPartitionKey
     @get:DynamoDbAttribute("PK")
-    lateinit var id: String
+    lateinit var userId: String
 
     @get:DynamoDbSortKey
     @get:DynamoDbAttribute("SK")
-    lateinit var sk: String
+    lateinit var id: String
 
     @get:DynamoDbAttribute("CreatedAt")
     lateinit var createdAt: OffsetDateTime
@@ -27,9 +33,15 @@ class Folder {
     @get:DynamoDbAttribute("UpdatedAt")
     lateinit var updatedAt: OffsetDateTime
 
-    @get:DynamoDbAttribute("UserId")
-    lateinit var userId: String
 
     @get:DynamoDbAttribute("Name")
     lateinit var name: String
+}
+
+@Mapper
+interface FolderConverter {
+    @Mappings(
+        Mapping(target = "xyObject", constant = "folder"), Mapping(target = "revisionDate", source = "updatedAt")
+    )
+    fun toFolderResponse(folder: Folder): FolderResponseModel
 }

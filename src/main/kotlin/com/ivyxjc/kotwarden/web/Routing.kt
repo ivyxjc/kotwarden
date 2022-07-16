@@ -71,6 +71,18 @@ fun Routing.folder(folderController: FolderController) {
             post("") {
                 folderController.createFolder(this.context)
             }
+            delete("{id}") {
+                val id = this.context.parameters.getOrFail<String>("id")
+                folderController.deleteFolder(this.context, id)
+            }
+            put("{id}") {
+                val id = this.context.parameters.getOrFail<String>("id")
+                folderController.updateFolder(this.context, id)
+            }
+            get("{id}") {
+                val id = this.context.parameters.getOrFail<String>("id")
+                TODO()
+            }
         }
     }
 }

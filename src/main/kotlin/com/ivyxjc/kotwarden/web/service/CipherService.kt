@@ -27,13 +27,13 @@ class CipherRepository(private val client: DynamoDbEnhancedClient) : ICipherRepo
     private val table = client.table(Cipher.TABLE_NAME, schema)
 
     override fun save(cipher: Cipher) {
-        cipher.id = CIPHER_ID_PREFIX + cipher.id
+        cipher.id = CIPHER_PREFIX + cipher.id
         return table.putItem(cipher)
     }
 
     override fun findByUser(userId: String): List<Cipher> {
         val queryConditional =
-            QueryConditional.sortBeginsWith(Key.builder().partitionValue(userId).sortValue(CIPHER_ID_PREFIX).build());
+            QueryConditional.sortBeginsWith(Key.builder().partitionValue(userId).sortValue(CIPHER_PREFIX).build());
         val iter = table.query(queryConditional)
         return convert(iter)
     }
