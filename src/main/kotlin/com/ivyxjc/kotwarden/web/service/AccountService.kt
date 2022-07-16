@@ -2,6 +2,7 @@ package com.ivyxjc.kotwarden.web.service
 
 import com.ivyxjc.kotwarden.Config
 import com.ivyxjc.kotwarden.model.User
+import com.ivyxjc.kotwarden.util.USER_ID_PREFIX
 import com.ivyxjc.kotwarden.util.convert
 import com.ivyxjc.kotwarden.util.hashPassword
 import com.ivyxjc.kotwarden.web.model.PreLoginRequest
@@ -39,11 +40,13 @@ class UserRepository(private val client: DynamoDbEnhancedClient) : IUserReposito
     }
 
     override fun findById(id: String): User? {
-        val key = Key.builder().partitionValue(id).build()
+        val key = Key.builder().partitionValue(id).sortValue(id).build()
         return table.getItem(key)
     }
 
     override fun save(user: User) {
+        user.id = USER_ID_PREFIX + user.id
+        user.sk = user.id
         return table.putItem(user)
     }
 }
@@ -78,6 +81,7 @@ class AccountService(private val userRepository: UserRepository) : IAccountServi
                 user = User.converter.toModel(registerReq)
                 user.masterPasswordHash = hashPassword(registerReq.masterPasswordHash, user.salt, user.kdfIterations)
                 user.id = UUID.randomUUID().toString()
+                user.sk = user.id
                 userRepository.save(user)
             } else {
                 TODO("throw http exception if user email is not allowed to sign up")

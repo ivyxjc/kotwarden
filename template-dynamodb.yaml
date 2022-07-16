@@ -1,28 +1,54 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Resources:
-    UserTable:
+    Cipher:
         Type: AWS::DynamoDB::Table
         Properties:
-            TableName: user
+            TableName: resource
             AttributeDefinitions:
-                -   AttributeName: Id
+                -   AttributeName: PK
+                    AttributeType: S
+                -   AttributeName: SK
+                    AttributeType: S
+                -   AttributeName: Folder
                     AttributeType: S
                 -   AttributeName: Email
                     AttributeType: S
             KeySchema:
-                -   AttributeName: Id
+                -   AttributeName: PK
                     KeyType: HASH
+                -   AttributeName: SK
+                    KeyType: RANGE
             ProvisionedThroughput:
                 ReadCapacityUnits: 1
                 WriteCapacityUnits: 1
             GlobalSecondaryIndexes:
-                -   ContributorInsightsSpecification:
-                        Enabled: true
-                    IndexName: "Email-Index"
+                -   IndexName: "Email-Index"
                     KeySchema:
                         -   AttributeName: Email
                             KeyType: HASH
+                    Projection:
+                        ProjectionType: ALL
+                    ProvisionedThroughput:
+                        ReadCapacityUnits: 1
+                        WriteCapacityUnits: 1
+                -   IndexName: "PK-Folder-Index"
+                    KeySchema:
+                        -   AttributeName: PK
+                            KeyType: HASH
+                        -   AttributeName: Folder
+                            KeyType: RANGE
+                    Projection:
+                        ProjectionType: KEYS_ONLY
+                    ProvisionedThroughput:
+                        ReadCapacityUnits: 1
+                        WriteCapacityUnits: 1
+                -   IndexName: "Folder-SK-Index"
+                    KeySchema:
+                        -   AttributeName: Folder
+                            KeyType: HASH
+                        -   AttributeName: SK
+                            KeyType: RANGE
                     Projection:
                         ProjectionType: ALL
                     ProvisionedThroughput:
@@ -40,13 +66,14 @@ Resources:
             KeySchema:
                 -   AttributeName: Id
                     KeyType: HASH
+            TimeToLiveSpecification:
+                AttributeName: TTL
+                Enabled: true
             ProvisionedThroughput:
                 ReadCapacityUnits: 1
                 WriteCapacityUnits: 1
             GlobalSecondaryIndexes:
-                -   ContributorInsightsSpecification:
-                        Enabled: true
-                    IndexName: "RefreshToken-Index"
+                -   IndexName: "RefreshToken-Index"
                     KeySchema:
                         -   AttributeName: RefreshToken
                             KeyType: HASH
@@ -55,49 +82,47 @@ Resources:
                     ProvisionedThroughput:
                         ReadCapacityUnits: 1
                         WriteCapacityUnits: 1
-    Cipher:
-        Type: AWS::DynamoDB::Table
-        Properties:
-            TableName: cipher
-            AttributeDefinitions:
-                -   AttributeName: Id
-                    AttributeType: S
-                -   AttributeName: UserId
-                    AttributeType: S
-            KeySchema:
-                -   AttributeName: UserId
-                    KeyType: HASH
-                -   AttributeName: Id
-                    KeyType: RANGE
-            ProvisionedThroughput:
-                ReadCapacityUnits: 1
-                WriteCapacityUnits: 1
+#    Cipher:
+#        Type: AWS::DynamoDB::Table
+#        Properties:
+#            TableName: cipher
+#            AttributeDefinitions:
+#                -   AttributeName: Id
+#                    AttributeType: S
+#                -   AttributeName: Owner
+#                    AttributeType: S
+#            KeySchema:
+#                -   AttributeName: Id
+#                    KeyType: HASH
+#                -   AttributeName: Owner
+#                    KeyType: RANGE
+#            ProvisionedThroughput:
+#                ReadCapacityUnits: 1
+#                WriteCapacityUnits: 1
 #            GlobalSecondaryIndexes:
-#                - ContributorInsightsSpecification:
-#                      Enabled: true
-    #                  IndexName: "RefreshToken-Index"
-    #                  KeySchema:
-    #                      - AttributeName: RefreshToken
-    #                        KeyType: HASH
-    #                  Projection:
-    #                      ProjectionType: ALL
-    #                  ProvisionedThroughput:
-    #                      ReadCapacityUnits: 1
-    #                      WriteCapacityUnits: 1
-    Folder:
-        Type: AWS::DynamoDB::Table
-        Properties:
-            TableName: folder
-            AttributeDefinitions:
-                -   AttributeName: Id
-                    AttributeType: S
-                -   AttributeName: UserId
-                    AttributeType: S
-            KeySchema:
-                -   AttributeName: UserId
-                    KeyType: HASH
-                -   AttributeName: Id
-                    KeyType: RANGE
-            ProvisionedThroughput:
-                ReadCapacityUnits: 1
-                WriteCapacityUnits: 1
+#                -   IndexName: "Owner-Index"
+#                    KeySchema:
+#                        -   AttributeName: Owner
+#                            KeyType: HASH
+#                    Projection:
+#                        ProjectionType: ALL
+#                    ProvisionedThroughput:
+#                        ReadCapacityUnits: 1
+#                        WriteCapacityUnits: 1
+#    Folder:
+#        Type: AWS::DynamoDB::Table
+#        Properties:
+#            TableName: folder
+#            AttributeDefinitions:
+#                -   AttributeName: Id
+#                    AttributeType: S
+#                -   AttributeName: UserId
+#                    AttributeType: S
+#            KeySchema:
+#                -   AttributeName: UserId
+#                    KeyType: HASH
+#                -   AttributeName: Id
+#                    KeyType: RANGE
+#            ProvisionedThroughput:
+#                ReadCapacityUnits: 1
+#                WriteCapacityUnits: 1

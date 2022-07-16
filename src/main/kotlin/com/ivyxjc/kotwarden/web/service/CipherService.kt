@@ -1,10 +1,7 @@
 package com.ivyxjc.kotwarden.web.service
 
 import com.ivyxjc.kotwarden.model.Cipher
-import com.ivyxjc.kotwarden.util.EMPTY_STRING
-import com.ivyxjc.kotwarden.util.convert
-import com.ivyxjc.kotwarden.util.encodeToString
-import com.ivyxjc.kotwarden.util.isEmpty
+import com.ivyxjc.kotwarden.util.*
 import com.ivyxjc.kotwarden.web.kError
 import com.ivyxjc.kotwarden.web.model.CipherRequestModel
 import com.ivyxjc.kotwarden.web.model.CipherResponseModel
@@ -22,9 +19,7 @@ interface ICipherRepository {
 
     fun findByUser(userId: String): List<Cipher>
 
-    fun findByUserAndId(userId: String, id: String): Cipher?
-
-    fun findById(id: String): Cipher?
+    fun findByOwnerAndId(ownerId: String, id: String): Cipher?
 }
 
 class CipherRepository(private val client: DynamoDbEnhancedClient) : ICipherRepository {
@@ -32,17 +27,19 @@ class CipherRepository(private val client: DynamoDbEnhancedClient) : ICipherRepo
     private val table = client.table(Cipher.TABLE_NAME, schema)
 
     override fun save(cipher: Cipher) {
+        cipher.id = CIPHER_ID_PREFIX + cipher.id
         return table.putItem(cipher)
     }
 
     override fun findByUser(userId: String): List<Cipher> {
-        val queryConditional = QueryConditional.keyEqualTo(Key.builder().partitionValue(userId).build())
+        val queryConditional =
+            QueryConditional.sortBeginsWith(Key.builder().partitionValue(userId).sortValue(CIPHER_ID_PREFIX).build());
         val iter = table.query(queryConditional)
         return convert(iter)
     }
 
-    override fun findByUserAndId(userId: String, id: String): Cipher? {
-        val queryConditional = QueryConditional.keyEqualTo(Key.builder().partitionValue(userId).sortValue(id).build())
+    override fun findByOwnerAndId(ownerId: String, id: String): Cipher? {
+        val queryConditional = QueryConditional.keyEqualTo(Key.builder().partitionValue(ownerId).sortValue(id).build())
         val iter = table.query(queryConditional)
         val list = convert(iter)
         return if (list.isEmpty()) {
@@ -51,13 +48,8 @@ class CipherRepository(private val client: DynamoDbEnhancedClient) : ICipherRepo
             list[0]
         }
     }
-
-    override fun findById(id: String): Cipher? {
-        TODO()
-    }
-
-
 }
+
 
 class CipherService(private val cipherRepository: ICipherRepository, private val folderService: FolderService) {
 
@@ -91,7 +83,7 @@ class CipherService(private val cipherRepository: ICipherRepository, private val
     }
 
     fun findById(userId: String, cipherId: String): Cipher? {
-        return cipherRepository.findByUserAndId(userId, cipherId)
+        return cipherRepository.findByOwnerAndId(userId, cipherId)
     }
 
     private fun deleteCipherById(userId: String, id: String) {

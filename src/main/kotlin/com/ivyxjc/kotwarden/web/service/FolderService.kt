@@ -20,7 +20,7 @@ class FolderRepository(private val client: DynamoDbEnhancedClient) : IFolderRepo
     private val table = client.table(Folder.TABLE_NAME, schema)
 
     override fun findById(id: String, userId: String): Folder? {
-        val key = Key.builder().partitionValue(id).build()
+        val key = Key.builder().partitionValue(userId).sortValue(id).build()
         val folder = table.getItem(key)
         if (folder == null) {
             return null

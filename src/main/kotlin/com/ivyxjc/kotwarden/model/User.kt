@@ -7,16 +7,13 @@ import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
 import org.mapstruct.factory.Mappers
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.*
 import java.security.SecureRandom
 
 @DynamoDbBean
 class User {
     companion object {
-        const val TABLE_NAME = "user"
+        const val TABLE_NAME = "resource"
         const val Email_INDEX = "Email-Index"
         val converter: UserConverter = Mappers.getMapper(UserConverter::class.java)
     }
@@ -30,8 +27,13 @@ class User {
     }
 
     @get:DynamoDbPartitionKey
-    @get:DynamoDbAttribute("Id")
+    @get:DynamoDbAttribute("PK")
     lateinit var id: String
+
+    @get:DynamoDbSortKey
+    @get:DynamoDbAttribute("SK")
+    lateinit var sk: String
+
 
     @get:DynamoDbSecondaryPartitionKey(indexNames = [Email_INDEX])
     @get:DynamoDbAttribute("Email")

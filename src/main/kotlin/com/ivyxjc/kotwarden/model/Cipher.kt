@@ -19,16 +19,16 @@ import java.time.OffsetDateTime
 @DynamoDbBean
 class Cipher {
     companion object {
-        const val TABLE_NAME = "cipher"
+        const val TABLE_NAME = "resource"
         val converter: CipherConverter = Mappers.getMapper(CipherConverter::class.java)
     }
 
     @get:DynamoDbPartitionKey
-    @get:DynamoDbAttribute("UserId")
+    @get:DynamoDbAttribute("PK")
     lateinit var userId: String
 
     @get:DynamoDbSortKey
-    @get:DynamoDbAttribute("Id")
+    @get:DynamoDbAttribute("SK")
     lateinit var id: String
 
     @get:DynamoDbAttribute("CreatedAt")

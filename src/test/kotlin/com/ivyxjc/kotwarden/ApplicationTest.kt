@@ -1,5 +1,10 @@
 //package com.ivyxjc.kotwarden
 //
+//import com.ivyxjc.kotwarden.util.isEmpty
+//import com.ivyxjc.kotwarden.web.model.CipherRequestModel
+//import org.junit.Test
+//
+//
 //import io.ktor.http.*
 //import io.ktor.client.request.*
 //import io.ktor.client.statement.*
@@ -11,9 +16,10 @@
 //    fun testRoot() = testApplication {
 //        application {
 //        }
-//        client.get("/").apply {
+//        client.get("/api/health").apply {
 //            assertEquals(HttpStatusCode.OK, status)
-//            assertEquals("Hello World!", bodyAsText())
+//            assertEquals("OK", bodyAsText())
 //        }
 //    }
 //}
+//

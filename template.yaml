@@ -18,8 +18,8 @@ Resources:
             Timeout: 15
             Tracing: Active
             Architectures:
-                - x86_64
-            MemorySize: 832
+                - arm64
+            MemorySize: 512
             Policies:
                 - AmazonDynamoDBFullAccess
             Events:
