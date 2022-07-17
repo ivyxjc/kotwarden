@@ -29,6 +29,7 @@ fun Application.main() {
     val syncController by ModuleConfig.kodein.instance<SyncController>()
     val cipherController by ModuleConfig.kodein.instance<CipherController>()
     val folderController by ModuleConfig.kodein.instance<FolderController>()
+    val organizationController by ModuleConfig.kodein.instance<OrganizationController>()
     install(CORS) {
         allowHost(Config.corsHost)
         allowMethod(HttpMethod.Put)
@@ -56,6 +57,7 @@ fun Application.main() {
         sync(syncController)
         cipher(cipherController)
         folder(folderController)
+        organization(organizationController)
     }
     install(ContentNegotiation) {
         json(Json {

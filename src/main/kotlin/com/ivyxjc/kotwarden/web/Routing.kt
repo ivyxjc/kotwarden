@@ -87,6 +87,26 @@ fun Routing.folder(folderController: FolderController) {
     }
 }
 
+fun Routing.organization(organizationController: OrganizationController) {
+    authenticate("auth-jwt") {
+        route("api/plans") {
+            get("") {
+                organizationController.getPlans(this.context)
+            }
+            get("/") {
+                organizationController.getPlans(this.context)
+            }
+
+        }
+        route("api/organizations") {
+            post("") {
+                organizationController.createOrganization(this.context)
+            }
+        }
+    }
+
+}
+
 //
 //fun Route.AccountsApi() {
 //    val gson = Gson()

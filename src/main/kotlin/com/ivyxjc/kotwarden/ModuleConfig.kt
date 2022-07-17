@@ -35,6 +35,14 @@ object ModuleConfig {
         bindSingleton { FolderRepository(instance()) }
         bindSingleton { FolderService(instance()) }
         bindSingleton { FolderController(instance()) }
+
+
+        bindSingleton { UserOrganizationRepository(instance()) }
+        bindSingleton { VaultCollectionRepository(instance()) }
+
+        bindSingleton { OrganizationRepository(instance()) }
+        bindSingleton { OrganizationService(instance(), instance(), instance()) }
+        bindSingleton { OrganizationController(instance()) }
     }
 
     private val dynamodbModule = DI.Module("dynamodb") {
