@@ -112,6 +112,12 @@ data class CipherLoginUriModel(
     val uri: String? = null,
     val match: Int? = null
 )
+
+@kotlinx.serialization.Serializable
+data class CipherBulkDeleteRequestModel(
+    val ids: List<String>,
+    val organizationId: String? = null
+)
 // endregion
 
 

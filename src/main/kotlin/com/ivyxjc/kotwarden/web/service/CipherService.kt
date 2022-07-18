@@ -3,10 +3,7 @@ package com.ivyxjc.kotwarden.web.service
 import com.ivyxjc.kotwarden.model.Cipher
 import com.ivyxjc.kotwarden.util.*
 import com.ivyxjc.kotwarden.web.kError
-import com.ivyxjc.kotwarden.web.model.CipherRequestModel
-import com.ivyxjc.kotwarden.web.model.CipherResponseModel
-import com.ivyxjc.kotwarden.web.model.ImportCiphersRequestModel
-import com.ivyxjc.kotwarden.web.model.KotwardenPrincipal
+import com.ivyxjc.kotwarden.web.model.*
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient
 import software.amazon.awssdk.enhanced.dynamodb.Key
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema
@@ -16,6 +13,7 @@ import java.util.*
 
 interface ICipherRepository {
     fun save(cipher: Cipher)
+    fun delete(ownerId: String, id: String): Cipher?
 
     fun findByUser(userId: String): List<Cipher>
 
@@ -28,6 +26,10 @@ class CipherRepository(private val client: DynamoDbEnhancedClient) : ICipherRepo
 
     override fun save(cipher: Cipher) {
         return table.putItem(cipher)
+    }
+
+    override fun delete(ownerId: String, id: String): Cipher? {
+        return table.deleteItem(Key.builder().partitionValue(ownerId).sortValue(id).build())
     }
 
     override fun findByUser(userId: String): List<Cipher> {
@@ -58,7 +60,16 @@ class CipherService(private val cipherRepository: ICipherRepository, private val
     }
 
     fun deleteCipher(kotwardenPrincipal: KotwardenPrincipal, id: String): CipherResponseModel {
-        TODO()
+        // TODO: 2022/7/18 delete by organization
+        val cipher = cipherRepository.delete(kotwardenPrincipal.id, id) ?: kError("Cipher not found")
+        return Cipher.converter.toResponse(cipher)
+    }
+
+    fun deleteCiphers(kotwardenPrincipal: KotwardenPrincipal, bulkDeleteRequestModel: CipherBulkDeleteRequestModel) {
+        // TODO: 2022/7/18 delete by organization
+        bulkDeleteRequestModel.ids.forEach {
+            cipherRepository.delete(kotwardenPrincipal.id, it)
+        }
     }
 
     fun updateCipher(
@@ -84,11 +95,6 @@ class CipherService(private val cipherRepository: ICipherRepository, private val
     fun findById(userId: String, cipherId: String): Cipher? {
         return cipherRepository.findByOwnerAndId(userId, cipherId)
     }
-
-    private fun deleteCipherById(userId: String, id: String) {
-        TODO()
-    }
-
 
     private fun createUpdateCipherFromRequest(
         cipher: Cipher?, request: CipherRequestModel, kotwardenPrincipal: KotwardenPrincipal

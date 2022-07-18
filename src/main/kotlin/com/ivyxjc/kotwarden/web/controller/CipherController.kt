@@ -1,6 +1,7 @@
 package com.ivyxjc.kotwarden.web.controller
 
 import com.ivyxjc.kotwarden.web.kotwardenPrincipal
+import com.ivyxjc.kotwarden.web.model.CipherBulkDeleteRequestModel
 import com.ivyxjc.kotwarden.web.model.CipherRequestModel
 import com.ivyxjc.kotwarden.web.model.ImportCiphersRequestModel
 import com.ivyxjc.kotwarden.web.service.CipherService
@@ -22,10 +23,18 @@ class CipherController(private val cipherService: CipherService) {
     suspend fun deleteCipher(ctx: ApplicationCall, id: String) {
         ctx.apply {
             val principal = kotwardenPrincipal(this)
-            cipherService.deleteCipher(principal, id)
+            this.respond(cipherService.deleteCipher(principal, id))
         }
     }
 
+    suspend fun deleteCiphers(ctx: ApplicationCall) {
+        ctx.apply {
+            val principal = kotwardenPrincipal(this)
+            val request = this.receive<CipherBulkDeleteRequestModel>()
+            cipherService.deleteCiphers(principal, request)
+            this.respond(HttpStatusCode.OK)
+        }
+    }
 
     suspend fun updateCipher(ctx: ApplicationCall, cipherId: String) {
         ctx.apply {

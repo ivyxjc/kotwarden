@@ -61,6 +61,9 @@ fun Routing.cipher(cipherController: CipherController) {
                 val id = this.context.parameters.getOrFail<String>("id")
                 cipherController.deleteCipher(this.context, id)
             }
+            put("delete") {
+                cipherController.deleteCiphers(this.context)
+            }
         }
     }
 }
