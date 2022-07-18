@@ -1,5 +1,6 @@
 package com.ivyxjc.kotwarden.model
 
+import com.ivyxjc.kotwarden.Config
 import com.ivyxjc.kotwarden.web.model.RegisterRequest
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
@@ -38,11 +39,6 @@ class Device {
     @get:DynamoDbAttribute("Id")
     lateinit var id: String
 
-    @get:DynamoDbAttribute("CreatedAt")
-    lateinit var createdAt: OffsetDateTime
-
-    @get:DynamoDbAttribute("UpdatedAt")
-    lateinit var updatedAt: OffsetDateTime
 
     @get:DynamoDbAttribute("UserId")
     lateinit var userId: String
@@ -63,6 +59,14 @@ class Device {
     @get:DynamoDbAttribute("TwoFactorRemember")
     var twoFactorRemember: String? = null
 
+    @get:DynamoDbAttribute("TTL")
+    var ttl: Long = OffsetDateTime.now().toEpochSecond() + Config.deviceTTL
+
+    @get:DynamoDbAttribute("CreatedAt")
+    lateinit var createdAt: OffsetDateTime
+
+    @get:DynamoDbAttribute("UpdatedAt")
+    lateinit var updatedAt: OffsetDateTime
 }
 
 enum class DeviceType(val value: Int) {

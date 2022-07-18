@@ -20,6 +20,7 @@ val dotenv = dotenv {
 
 class Config {
     companion object {
+        const val deviceTTL = 3600 * 24 * 14
         const val kdfIterations = 10000
         const val kdf = 0
         const val defaultValidityHours = 2L
