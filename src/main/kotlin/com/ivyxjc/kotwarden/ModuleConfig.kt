@@ -25,7 +25,7 @@ object ModuleConfig {
         bindSingleton { IdentityService(instance(), instance()) }
         bindSingleton { IdentityController(instance()) }
 
-        bindSingleton { SyncService(instance(), instance()) }
+        bindSingleton { SyncService(instance(), instance(), instance()) }
         bindSingleton { SyncController(instance()) }
 
         bindSingleton { CipherRepository(instance()) }

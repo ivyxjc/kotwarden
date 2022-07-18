@@ -1,6 +1,7 @@
 package com.ivyxjc.kotwarden.web.service
 
 import com.ivyxjc.kotwarden.model.Cipher
+import com.ivyxjc.kotwarden.model.Folder
 import com.ivyxjc.kotwarden.model.User
 import com.ivyxjc.kotwarden.util.decodeFromString
 import com.ivyxjc.kotwarden.util.format
@@ -11,13 +12,18 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
-class SyncService(private val accountService: AccountService, private val cipherService: CipherService) {
+class SyncService(
+    private val accountService: AccountService,
+    private val cipherService: CipherService,
+    private val folderService: FolderService
+) {
     fun sync(principal: KotwardenPrincipal, userId: String): SyncResponseModel {
         val resp = SyncResponseModel()
         resp.xyObject = "sync"
         val user = accountService.findById(principal.id) ?: notAuthorized("User not found")
         resp.profile = User.converter.toProfileResponse(user)
         val ciphers = cipherService.findByUser(principal.id)
+        val folders = folderService.listByUser(principal.id)
         resp.ciphers.addAll(ciphers.map {
             val r = Cipher.converter.toCipherDetailResponse(it)
             when (r.type) {
@@ -34,6 +40,9 @@ class SyncService(private val accountService: AccountService, private val cipher
                 r.passwordHistory = decodeFromString(it.passwordHistory!!)
             }
             return@map r
+        })
+        resp.folders.addAll(folders.map {
+            Folder.converter.toFolderResponse(it)
         })
         return resp
     }

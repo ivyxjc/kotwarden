@@ -2,18 +2,22 @@ package com.ivyxjc.kotwarden.web.service
 
 import com.ivyxjc.kotwarden.model.Folder
 import com.ivyxjc.kotwarden.util.FOLDER_PREFIX
+import com.ivyxjc.kotwarden.util.convert
 import com.ivyxjc.kotwarden.web.model.FolderRequestModel
 import com.ivyxjc.kotwarden.web.model.FolderResponseModel
 import com.ivyxjc.kotwarden.web.model.KotwardenPrincipal
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient
 import software.amazon.awssdk.enhanced.dynamodb.Key
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest
 import java.time.OffsetDateTime
 import java.util.*
 
 
 interface IFolderRepository {
     fun findById(id: String, userId: String): Folder?
+    fun listByUser(userId: String): List<Folder>
     fun save(folder: Folder)
     fun updateFolder(id: String, userId: String, folder: Folder): Folder?
     fun deleteById(id: String, userId: String): Folder?
@@ -35,6 +39,13 @@ class FolderRepository(private val client: DynamoDbEnhancedClient) : IFolderRepo
             }
             return folder
         }
+    }
+
+    override fun listByUser(userId: String): List<Folder> {
+        val queryConditional =
+            QueryConditional.sortBeginsWith(Key.builder().partitionValue(userId).sortValue(FOLDER_PREFIX).build());
+        val iter = table.query(QueryEnhancedRequest.builder().queryConditional(queryConditional).build())
+        return convert(iter)
     }
 
     override fun deleteById(id: String, userId: String): Folder? {
@@ -82,5 +93,9 @@ class FolderService(private val folderRepository: IFolderRepository) {
 
     fun findById(id: String, userId: String): Folder? {
         return folderRepository.findById(id, userId)
+    }
+
+    fun listByUser(userId: String): List<Folder> {
+        return folderRepository.listByUser(userId)
     }
 }
