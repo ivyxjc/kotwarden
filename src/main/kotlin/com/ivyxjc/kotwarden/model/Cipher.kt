@@ -41,35 +41,35 @@ class Cipher {
     @get:DynamoDbAttribute("OrganizationId")
     var organizationId: String? = null
 
-    @get:DynamoDbAttribute("type")
+    @get:DynamoDbAttribute("Type")
     var type: CipherType = 0
 
-    @get:DynamoDbAttribute("name")
+    @get:DynamoDbAttribute("Name")
     lateinit var name: String
 
-    @get:DynamoDbAttribute("notes")
+    @get:DynamoDbAttribute("Notes")
     var notes: String? = null
 
-    @get:DynamoDbAttribute("fields")
+    @get:DynamoDbAttribute("Fields")
     var fields: String? = null
 
-    @get:DynamoDbAttribute("data")
+    @get:DynamoDbAttribute("Data")
     lateinit var data: String
 
-    @get:DynamoDbAttribute("passwordHistory")
+    @get:DynamoDbAttribute("PasswordHistory")
     var passwordHistory: String? = null
 
-    @get:DynamoDbAttribute("deletedAt")
+    @get:DynamoDbAttribute("DeletedAt")
     var deletedAt: OffsetDateTime? = null
 
-    @get:DynamoDbAttribute("reprompt")
+    @get:DynamoDbAttribute("Reprompt")
     var reprompt: Int? = null
 
     // cipher folder
     @get:DynamoDbAttribute("FolderId")
     var folderId: String? = null
 
-    @get:DynamoDbAttribute("favorite")
+    @get:DynamoDbAttribute("Favorite")
     var favorite: Boolean = false
 }
 

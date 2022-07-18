@@ -71,7 +71,7 @@ class User {
 
 
     // TODO: 2022/6/21 default from config 
-    @get:DynamoDbAttribute("enabled")
+    @get:DynamoDbAttribute("Enabled")
     var enabled: Boolean = true
 
     init {
