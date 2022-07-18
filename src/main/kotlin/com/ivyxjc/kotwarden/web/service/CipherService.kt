@@ -100,7 +100,7 @@ class CipherService(private val cipherRepository: ICipherRepository, private val
         cipher.userId = kotwardenPrincipal.id
 
         val folder = if (!isEmpty(request.folderId)) {
-            folderService.findById(kotwardenPrincipal.id, kotwardenPrincipal.id) ?: kError("Folder doesn't exist")
+            folderService.findById(request.folderId!!, kotwardenPrincipal.id) ?: kError("Folder doesn't exist")
         } else {
             null
         }
