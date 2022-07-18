@@ -45,8 +45,6 @@ class UserRepository(private val client: DynamoDbEnhancedClient) : IUserReposito
     }
 
     override fun save(user: User) {
-        user.id = USER_PREFIX + user.id
-        user.sk = user.id
         return table.putItem(user)
     }
 }
@@ -80,7 +78,7 @@ class AccountService(private val userRepository: UserRepository) : IAccountServi
             if (Config.isSignupAllowed(registerReq.email)) {
                 user = User.converter.toModel(registerReq)
                 user.masterPasswordHash = hashPassword(registerReq.masterPasswordHash, user.salt, user.kdfIterations)
-                user.id = UUID.randomUUID().toString()
+                user.id = USER_PREFIX + UUID.randomUUID().toString()
                 user.sk = user.id
                 userRepository.save(user)
             } else {

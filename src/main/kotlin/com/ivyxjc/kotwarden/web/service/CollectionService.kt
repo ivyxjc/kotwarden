@@ -1,7 +1,6 @@
 package com.ivyxjc.kotwarden.web.service
 
 import com.ivyxjc.kotwarden.model.VaultCollection
-import com.ivyxjc.kotwarden.util.COLLECTION_PREFIX
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema
 
@@ -16,7 +15,6 @@ class VaultCollectionRepository(private val client: DynamoDbEnhancedClient) : IV
     private val table = client.table(VaultCollection.TABLE_NAME, schema)
 
     override fun save(vaultCollection: VaultCollection) {
-        vaultCollection.id = COLLECTION_PREFIX + vaultCollection.id
         table.putItem(vaultCollection)
     }
 }

@@ -3,6 +3,7 @@ package com.ivyxjc.kotwarden.web.service
 import com.ivyxjc.kotwarden.model.Organization
 import com.ivyxjc.kotwarden.model.UserOrganization
 import com.ivyxjc.kotwarden.model.VaultCollection
+import com.ivyxjc.kotwarden.util.COLLECTION_PREFIX
 import com.ivyxjc.kotwarden.util.ORGANIZATION_PREFIX
 import com.ivyxjc.kotwarden.web.model.KotwardenPrincipal
 import com.ivyxjc.kotwarden.web.model.OrganizationCreateRequestModel
@@ -37,8 +38,6 @@ class OrganizationRepository(private val client: DynamoDbEnhancedClient) : IOrga
 
 
     override fun save(organization: Organization) {
-        organization.id = ORGANIZATION_PREFIX + organization.id
-        organization.sk = organization.id
         table.putItem(organization)
     }
 
@@ -52,7 +51,8 @@ class OrganizationService(
 ) {
     fun createOrganization(principal: KotwardenPrincipal, request: OrganizationCreateRequestModel): Organization {
         val organization = Organization()
-        organization.id = UUID.randomUUID().toString()
+        organization.id = ORGANIZATION_PREFIX + UUID.randomUUID().toString()
+        organization.sk = organization.id
         organization.name = request.name
         organization.billingEmail = request.billingEmail
         organization.encryptedPrivateKey = request.keys!!.encryptedPrivateKey
@@ -70,7 +70,7 @@ class OrganizationService(
 
         val vaultCollection = VaultCollection()
         vaultCollection.organizationId = organization.id
-        vaultCollection.id = UUID.randomUUID().toString()
+        vaultCollection.id = COLLECTION_PREFIX + UUID.randomUUID().toString()
         vaultCollection.name = request.collectionName
         vaultCollection.createdAt = OffsetDateTime.now()
         vaultCollection.updatedAt = OffsetDateTime.now()

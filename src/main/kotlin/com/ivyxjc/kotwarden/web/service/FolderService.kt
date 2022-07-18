@@ -52,7 +52,6 @@ class FolderRepository(private val client: DynamoDbEnhancedClient) : IFolderRepo
     }
 
     override fun save(folder: Folder) {
-        folder.id = FOLDER_PREFIX + folder.id
         return table.putItem(folder)
     }
 }
@@ -61,7 +60,7 @@ class FolderService(private val folderRepository: IFolderRepository) {
     fun createFolder(principal: KotwardenPrincipal, request: FolderRequestModel): FolderResponseModel {
         val folder = Folder()
         folder.name = request.name
-        folder.id = UUID.randomUUID().toString()
+        folder.id = FOLDER_PREFIX + UUID.randomUUID().toString()
         folder.userId = principal.id
         folder.createdAt = OffsetDateTime.now()
         folder.updatedAt = OffsetDateTime.now()

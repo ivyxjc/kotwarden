@@ -27,7 +27,6 @@ class CipherRepository(private val client: DynamoDbEnhancedClient) : ICipherRepo
     private val table = client.table(Cipher.TABLE_NAME, schema)
 
     override fun save(cipher: Cipher) {
-        cipher.id = CIPHER_PREFIX + cipher.id
         return table.putItem(cipher)
     }
 
@@ -131,7 +130,7 @@ class CipherService(private val cipherRepository: ICipherRepository, private val
 
     private fun newCipher(type: Int, name: String): Cipher {
         val cipher = Cipher()
-        cipher.id = UUID.randomUUID().toString()
+        cipher.id = CIPHER_PREFIX + UUID.randomUUID().toString()
         cipher.createdAt = OffsetDateTime.now()
         cipher.updatedAt = OffsetDateTime.now()
         cipher.data = EMPTY_STRING
