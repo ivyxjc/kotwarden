@@ -33,6 +33,15 @@ class OrganizationController(private val organizationService: OrganizationServic
         }
     }
 
+    suspend fun listOrganizations(ctx: ApplicationCall) {
+        ctx.apply {
+            val principal = kotwardenPrincipal(this)
+            val list = organizationService.listByUserId(principal.id)
+            this.respond(HttpStatusCode.OK, list)
+
+        }
+    }
+
     suspend fun createOrganization(ctx: ApplicationCall) {
         ctx.apply {
             val principal = kotwardenPrincipal(this)

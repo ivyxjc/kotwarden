@@ -1,5 +1,7 @@
 package com.ivyxjc.kotwarden.web.model
 
+import kotlinx.serialization.SerialName
+
 typealias PlanType = Int
 
 
@@ -24,7 +26,8 @@ data class OrganizationKeysRequestModel(
 
 @kotlinx.serialization.Serializable
 data class OrganizationResponseModel(
-    val `object`: String? = null,
+    @SerialName("object")
+    val xyObject: String? = null,
     val id: String? = null,
     val identifier: String? = null,
     val name: String? = null,

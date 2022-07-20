@@ -5,20 +5,29 @@ import com.ivyxjc.kotwarden.model.UserOrganization
 import com.ivyxjc.kotwarden.model.VaultCollection
 import com.ivyxjc.kotwarden.util.COLLECTION_PREFIX
 import com.ivyxjc.kotwarden.util.ORGANIZATION_PREFIX
+import com.ivyxjc.kotwarden.util.convert
 import com.ivyxjc.kotwarden.web.model.KotwardenPrincipal
 import com.ivyxjc.kotwarden.web.model.OrganizationCreateRequestModel
+import com.ivyxjc.kotwarden.web.model.OrganizationResponseModel
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient
+import software.amazon.awssdk.enhanced.dynamodb.Key
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema
+import software.amazon.awssdk.enhanced.dynamodb.model.BatchGetItemEnhancedRequest
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest
+import software.amazon.awssdk.enhanced.dynamodb.model.ReadBatch
 import java.time.OffsetDateTime
 import java.util.*
 
 interface IUserOrganizationRepository {
     fun save(userOrganization: UserOrganization)
-
+    fun listByUserId(userId: String): List<UserOrganization>
 }
 
 interface IOrganizationRepository {
     fun save(organization: Organization)
+
+    fun listByOrganizationIds(organizationIds: List<String>): List<Organization>
 }
 
 class UserOrganizationRepository(private val client: DynamoDbEnhancedClient) : IUserOrganizationRepository {
@@ -29,6 +38,11 @@ class UserOrganizationRepository(private val client: DynamoDbEnhancedClient) : I
         table.putItem(userOrganization)
     }
 
+    override fun listByUserId(userId: String): List<UserOrganization> {
+        val queryConditional = QueryConditional.keyEqualTo(Key.builder().partitionValue(userId).build());
+        val iter = table.query(QueryEnhancedRequest.builder().queryConditional(queryConditional).build())
+        return convert(iter)
+    }
 }
 
 class OrganizationRepository(private val client: DynamoDbEnhancedClient) : IOrganizationRepository {
@@ -39,6 +53,13 @@ class OrganizationRepository(private val client: DynamoDbEnhancedClient) : IOrga
 
     override fun save(organization: Organization) {
         table.putItem(organization)
+    }
+
+    override fun listByOrganizationIds(organizationIds: List<String>): List<Organization> {
+        val batches = ReadBatch.builder(Organization::class.java).mappedTableResource(table)
+        organizationIds.forEach { it -> batches.addGetItem(Key.builder().partitionValue(it).sortValue(it).build()) }
+        val request = BatchGetItemEnhancedRequest.builder().readBatches(batches.build()).build()
+        return convert(client.batchGetItem(request), table)
     }
 
 
@@ -76,6 +97,12 @@ class OrganizationService(
         vaultCollection.updatedAt = OffsetDateTime.now()
         vaultCollectionRepository.save(vaultCollection)
         return organization
+    }
+
+    fun listByUserId(id: String): List<OrganizationResponseModel> {
+        val orgIds = userOrganizationRepository.listByUserId(id)
+        return organizationRepository.listByOrganizationIds(orgIds.map { it.organizationId })
+            .map { Organization.converter.toResponse(it) }
     }
 
 }

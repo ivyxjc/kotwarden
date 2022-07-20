@@ -25,7 +25,7 @@ data class ProfileResponseModel(
     val securityStamp: String? = null,
     val forcePasswordReset: Boolean? = null,
     val usesKeyConnector: Boolean? = null,
-    val organizations: List<ProfileOrganizationResponseModel>? = null,
+    var organizations: List<ProfileOrganizationResponseModel>? = null,
     val providers: List<ProfileProviderResponseModel>? = null,
     val providerOrganizations: List<ProfileProviderOrganizationResponseModel>? = null
 )

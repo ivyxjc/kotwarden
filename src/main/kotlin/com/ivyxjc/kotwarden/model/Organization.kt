@@ -1,5 +1,11 @@
 package com.ivyxjc.kotwarden.model
 
+import com.ivyxjc.kotwarden.web.model.OrganizationResponseModel
+import com.ivyxjc.kotwarden.web.model.ProfileOrganizationResponseModel
+import org.mapstruct.Mapper
+import org.mapstruct.Mapping
+import org.mapstruct.Mappings
+import org.mapstruct.factory.Mappers
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey
@@ -10,6 +16,7 @@ import java.time.OffsetDateTime
 class Organization {
     companion object {
         const val TABLE_NAME = "resource"
+        val converter: OrganizationConverter = Mappers.getMapper(OrganizationConverter::class.java)
     }
 
     @get:DynamoDbPartitionKey
@@ -26,7 +33,6 @@ class Organization {
     @get:DynamoDbAttribute("UpdatedAt")
     lateinit var updatedAt: OffsetDateTime
 
-
     @get:DynamoDbAttribute("Name")
     lateinit var name: String
 
@@ -38,4 +44,15 @@ class Organization {
 
     @get:DynamoDbAttribute("PublicKey")
     var publicKey: String? = null
+}
+
+@Mapper
+interface OrganizationConverter {
+    @Mappings(
+        Mapping(target = "xyObject", constant = "organization"),
+    )
+    fun toResponse(organization: Organization): OrganizationResponseModel
+
+    fun toProfileResponse(organization: OrganizationResponseModel): ProfileOrganizationResponseModel
+
 }
