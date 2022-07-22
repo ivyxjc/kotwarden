@@ -26,8 +26,12 @@ data class CipherRequestModel(
     val card: CipherCardModel? = null,
     val identity: CipherIdentityModel? = null,
     val secureNote: CipherSecureNoteModel? = null,
-    @kotlinx.serialization.Serializable(with = OffsetDatetimeNullableSerializer::class)
-    val lastKnownRevisionDate: OffsetDateTime? = null
+    @kotlinx.serialization.Serializable(with = OffsetDatetimeNullableSerializer::class) val lastKnownRevisionDate: OffsetDateTime? = null
+)
+
+@kotlinx.serialization.Serializable
+data class CipherCreateRequestModel(
+    val cipher: CipherRequestModel, val collectionIds: List<String>? = null
 )
 
 @kotlinx.serialization.Serializable
@@ -40,22 +44,18 @@ data class ImportCiphersRequestModel(
 
 @kotlinx.serialization.Serializable
 data class CipherFieldModel(
-    val type: CipherType? = null,
-    val name: String? = null,
-    val value: String? = null
+    val type: CipherType? = null, val name: String? = null, val value: String? = null
 )
 
 @kotlinx.serialization.Serializable
 data class CipherPasswordHistoryModel(
     val password: String,
-    @kotlinx.serialization.Serializable(with = OffsetDatetimeNullableSerializer::class)
-    val lastUsedDate: OffsetDateTime?
+    @kotlinx.serialization.Serializable(with = OffsetDatetimeNullableSerializer::class) val lastUsedDate: OffsetDateTime?
 )
 
 @kotlinx.serialization.Serializable
 data class CipherAttachmentModel(
-    val fileName: String? = null,
-    val key: String? = null
+    val fileName: String? = null, val key: String? = null
 )
 
 @kotlinx.serialization.Serializable
@@ -64,8 +64,7 @@ data class CipherLoginModel(
     val uris: List<CipherLoginUriModel>? = null,
     val username: String? = null,
     val password: String? = null,
-    @kotlinx.serialization.Serializable(with = OffsetDatetimeNullableSerializer::class)
-    val passwordRevisionDate: OffsetDateTime? = null,
+    @kotlinx.serialization.Serializable(with = OffsetDatetimeNullableSerializer::class) val passwordRevisionDate: OffsetDateTime? = null,
     val totp: String? = null,
     val autofillOnPageLoad: Boolean? = null
 )
@@ -109,14 +108,12 @@ data class CipherSecureNoteModel(
 
 @kotlinx.serialization.Serializable
 data class CipherLoginUriModel(
-    val uri: String? = null,
-    val match: Int? = null
+    val uri: String? = null, val match: Int? = null
 )
 
 @kotlinx.serialization.Serializable
 data class CipherBulkDeleteRequestModel(
-    val ids: List<String>,
-    val organizationId: String? = null
+    val ids: List<String>, val organizationId: String? = null
 )
 // endregion
 
@@ -142,13 +139,10 @@ data class CipherResponseModel(
     var passwordHistory: List<CipherPasswordHistoryModel>? = null,
     var attachments: List<AttachmentResponseModel>? = null,
     val organizationUseTotp: Boolean? = null,
-    @kotlinx.serialization.Serializable(with = OffsetDatetimeNullableSerializer::class)
-    var revisionDate: OffsetDateTime? = null,
-    @kotlinx.serialization.Serializable(with = OffsetDatetimeNullableSerializer::class)
-    val deletedDate: OffsetDateTime? = null,
+    @kotlinx.serialization.Serializable(with = OffsetDatetimeNullableSerializer::class) var revisionDate: OffsetDateTime? = null,
+    @kotlinx.serialization.Serializable(with = OffsetDatetimeNullableSerializer::class) val deletedDate: OffsetDateTime? = null,
     val reprompt: Int? = null,
-    @SerialName("object")
-    var xObject: String? = null
+    @SerialName("object") var xObject: String? = null
 )
 
 @kotlinx.serialization.Serializable
@@ -159,8 +153,7 @@ data class AttachmentResponseModel(
     val key: String? = null,
     val size: String? = null,
     val sizeName: String? = null,
-    @SerialName("object")
-    val xObject: String? = null
+    @SerialName("object") val xObject: String? = null
 )
 
 // endregion

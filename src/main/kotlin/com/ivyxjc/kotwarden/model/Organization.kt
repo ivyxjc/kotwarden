@@ -53,6 +53,10 @@ interface OrganizationConverter {
     )
     fun toResponse(organization: Organization): OrganizationResponseModel
 
-    fun toProfileResponse(organization: OrganizationResponseModel): ProfileOrganizationResponseModel
-
+    @Mappings(
+        Mapping(target = "xyObject", constant = "profileOrganization"),
+        Mapping(target = "seats", constant = "100"),
+        Mapping(target = "maxCollections", constant = "100"),
+    )
+    fun toProfileResponse(organization: Organization): ProfileOrganizationResponseModel
 }

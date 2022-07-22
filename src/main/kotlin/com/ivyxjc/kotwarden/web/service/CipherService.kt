@@ -100,9 +100,13 @@ class CipherService(private val cipherRepository: ICipherRepository, private val
         cipher: Cipher?, request: CipherRequestModel, kotwardenPrincipal: KotwardenPrincipal
     ): CipherResponseModel {
         cipher!!
+        if (request.lastKnownRevisionDate != null && cipher.updatedAt != request.lastKnownRevisionDate) {
+            kError("The client copy of this cipher is out of date. Resync the client and try again.")
+        }
         if (!isEmpty(cipher.organizationId) && cipher.organizationId !== request.organizationId) {
             kError("Organization mismatch. Please re-sync the client before updating the cipher")
         }
+
         cipher.userId = kotwardenPrincipal.id
 
         val folder = if (!isEmpty(request.folderId)) {

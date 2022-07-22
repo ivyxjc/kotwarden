@@ -8,26 +8,28 @@ import com.ivyxjc.kotwarden.util.ORGANIZATION_PREFIX
 import com.ivyxjc.kotwarden.util.convert
 import com.ivyxjc.kotwarden.web.model.KotwardenPrincipal
 import com.ivyxjc.kotwarden.web.model.OrganizationCreateRequestModel
-import com.ivyxjc.kotwarden.web.model.OrganizationResponseModel
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient
+import software.amazon.awssdk.enhanced.dynamodb.Expression
 import software.amazon.awssdk.enhanced.dynamodb.Key
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema
 import software.amazon.awssdk.enhanced.dynamodb.model.BatchGetItemEnhancedRequest
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest
 import software.amazon.awssdk.enhanced.dynamodb.model.ReadBatch
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 import java.time.OffsetDateTime
 import java.util.*
 
 interface IUserOrganizationRepository {
     fun save(userOrganization: UserOrganization)
-    fun listByUserId(userId: String): List<UserOrganization>
+    fun listConfirmedByUserId(userId: String): List<UserOrganization>
 }
 
 interface IOrganizationRepository {
     fun save(organization: Organization)
 
     fun listByOrganizationIds(organizationIds: List<String>): List<Organization>
+
 }
 
 class UserOrganizationRepository(private val client: DynamoDbEnhancedClient) : IUserOrganizationRepository {
@@ -38,9 +40,15 @@ class UserOrganizationRepository(private val client: DynamoDbEnhancedClient) : I
         table.putItem(userOrganization)
     }
 
-    override fun listByUserId(userId: String): List<UserOrganization> {
-        val queryConditional = QueryConditional.keyEqualTo(Key.builder().partitionValue(userId).build());
-        val iter = table.query(QueryEnhancedRequest.builder().queryConditional(queryConditional).build())
+    override fun listConfirmedByUserId(userId: String): List<UserOrganization> {
+        val queryConditional = QueryConditional.keyEqualTo(Key.builder().partitionValue(userId).build())
+        val filter = Expression.builder().expression("#status = :status")
+            .expressionNames(mapOf("#status" to "Status"))
+            .expressionValues(mapOf(":status" to AttributeValue.fromN(UserOrganization.Status.Confirmed.toString())))
+            .build()
+        val iter = table.query(
+            QueryEnhancedRequest.builder().queryConditional(queryConditional).filterExpression(filter).build()
+        )
         return convert(iter)
     }
 }
@@ -61,8 +69,6 @@ class OrganizationRepository(private val client: DynamoDbEnhancedClient) : IOrga
         val request = BatchGetItemEnhancedRequest.builder().readBatches(batches.build()).build()
         return convert(client.batchGetItem(request), table)
     }
-
-
 }
 
 class OrganizationService(
@@ -84,9 +90,12 @@ class OrganizationService(
         val userOrganization = UserOrganization()
         userOrganization.userId = principal.id
         userOrganization.organizationId = organization.id
+        userOrganization.accessAll = true
+        userOrganization.type = UserOrganization.Type.Owner
+        userOrganization.status = UserOrganization.Status.Confirmed
+        userOrganization.key = request.key
         userOrganization.createdAt = OffsetDateTime.now()
         userOrganization.updatedAt = OffsetDateTime.now()
-
         userOrganizationRepository.save(userOrganization)
 
         val vaultCollection = VaultCollection()
@@ -99,10 +108,23 @@ class OrganizationService(
         return organization
     }
 
-    fun listByUserId(id: String): List<OrganizationResponseModel> {
-        val orgIds = userOrganizationRepository.listByUserId(id)
-        return organizationRepository.listByOrganizationIds(orgIds.map { it.organizationId })
-            .map { Organization.converter.toResponse(it) }
+    fun listByUserId(id: String): List<Pair<UserOrganization, Organization>> {
+        val userOrganizations = userOrganizationRepository.listConfirmedByUserId(id)
+        val userOrganizationsMap = mutableMapOf<String, UserOrganization>()
+        userOrganizations.forEach {
+            userOrganizationsMap[it.organizationId] = it
+        }
+
+        val organizations = organizationRepository.listByOrganizationIds(userOrganizations.map { it.organizationId })
+        val list = mutableListOf<Pair<UserOrganization, Organization>>()
+        organizations.forEach {
+            list.add(userOrganizationsMap[it.id]!! to it)
+        }
+        return list
+    }
+
+    fun listCollectionByOrganization(organizationId: String): List<VaultCollection> {
+        return vaultCollectionRepository.listByOrganization(organizationId)
     }
 
 }

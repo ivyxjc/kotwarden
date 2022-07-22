@@ -32,7 +32,8 @@ data class ProfileResponseModel(
 
 @kotlinx.serialization.Serializable
 data class ProfileProviderResponseModel(
-    val `object`: String? = null,
+    @SerialName("object")
+    val xyObject: String? = null,
     val id: String? = null,
     val name: String? = null,
     val key: String? = null,
@@ -46,7 +47,8 @@ data class ProfileProviderResponseModel(
 
 @kotlinx.serialization.Serializable
 data class ProfileProviderOrganizationResponseModel(
-    val `object`: String? = null,
+    @SerialName("object")
+    val xyObject: String? = null,
     val id: String? = null,
     val name: String? = null,
     val usePolicies: Boolean? = null,
@@ -91,6 +93,7 @@ data class ProfileProviderOrganizationResponseModel(
 
 @kotlinx.serialization.Serializable
 data class ProfileOrganizationResponseModel(
+    @SerialName("object")
     val xyObject: String? = null,
     val id: String? = null,
     val name: String? = null,
@@ -109,16 +112,16 @@ data class ProfileOrganizationResponseModel(
     val seats: Int? = null,
     val maxCollections: Int? = null,
     val maxStorageGb: Int? = null,
-    val key: String? = null,
-    val status: OrganizationUserStatusType? = null,
-    val type: OrganizationUserType? = null,
-    val enabled: Boolean? = null,
+    var key: String? = null,
+    var status: OrganizationUserStatusType? = null,
+    var type: OrganizationUserType? = null,
+    var enabled: Boolean? = null,
     val ssoBound: Boolean? = null,
     val identifier: String? = null,
     val permissions: Permissions? = null,
     val resetPasswordEnrolled: Boolean? = null,
-    val userId: String? = null,
-    val hasPublicAndPrivateKeys: Boolean? = null,
+    var userId: String? = null,
+    var hasPublicAndPrivateKeys: Boolean? = null,
     val providerId: String? = null,
     val providerName: String? = null,
     val familySponsorshipFriendlyName: String? = null,

@@ -1,9 +1,6 @@
 package com.ivyxjc.kotwarden.web.service
 
-import com.ivyxjc.kotwarden.model.Cipher
-import com.ivyxjc.kotwarden.model.Folder
-import com.ivyxjc.kotwarden.model.Organization
-import com.ivyxjc.kotwarden.model.User
+import com.ivyxjc.kotwarden.model.*
 import com.ivyxjc.kotwarden.util.decodeFromString
 import com.ivyxjc.kotwarden.util.format
 import com.ivyxjc.kotwarden.web.model.KotwardenPrincipal
@@ -17,7 +14,7 @@ class SyncService(
     private val accountService: AccountService,
     private val cipherService: CipherService,
     private val folderService: FolderService,
-    private val organizationService: OrganizationService
+    private val organizationService: OrganizationService,
 ) {
     fun sync(principal: KotwardenPrincipal, userId: String): SyncResponseModel {
         val resp = SyncResponseModel()
@@ -26,7 +23,16 @@ class SyncService(
 
         resp.profile = User.converter.toProfileResponse(user)
         resp.profile!!.organizations =
-            organizationService.listByUserId(user.id).map { Organization.converter.toProfileResponse(it) }
+            organizationService.listByUserId(user.id).map {
+                val resp = Organization.converter.toProfileResponse(it.second)
+                resp.userId = user.id
+                resp.enabled = true
+                resp.type = UserOrganization.Type.Owner
+                resp.status = UserOrganization.Status.Confirmed
+                resp.key = it.first.key
+                resp.hasPublicAndPrivateKeys = it.second.publicKey != null && it.second.encryptedPrivateKey != null
+                return@map resp
+            }
         val ciphers = cipherService.findByUser(principal.id)
         val folders = folderService.listByUser(principal.id)
         resp.ciphers.addAll(ciphers.map {
@@ -49,6 +55,11 @@ class SyncService(
         resp.folders.addAll(folders.map {
             Folder.converter.toFolderResponse(it)
         })
+        resp.profile!!.organizations!!.forEach {
+            resp.collections.addAll(
+                organizationService.listCollectionByOrganization(it.id!!)
+                    .map { VaultCollection.converter.toResponse(it) })
+        }
         return resp
     }
 
