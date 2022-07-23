@@ -112,5 +112,23 @@ data class CipherDetailsResponseModelListResponseModel(
     var continuationToken: String? = null
 )
 
+@kotlinx.serialization.Serializable
+data class OrganizationUserBulkResponseModelListResponseModel(
+    @SerialName("object")
+    var xyObject: String? = null,
+    var data: List<OrganizationUserResponseModel>? = null,
+    var continuationToken: String? = null
+)
 
-
+@kotlinx.serialization.Serializable
+data class OrganizationUserResponseModel(
+    @SerialName("object")
+    var xyObject: String? = null,
+    var id: String? = null,
+    var userId: String? = null,
+    var email: String? = null,
+    var name: String? = null,
+    var type: OrganizationUserType? = null,
+    var status: OrganizationUserStatusType? = null,
+    var accessAll: Boolean? = null,
+)

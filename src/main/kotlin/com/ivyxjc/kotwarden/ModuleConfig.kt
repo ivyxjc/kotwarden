@@ -47,7 +47,7 @@ object ModuleConfig {
         bindSingleton { CollectionService(instance(), instance(), instance()) }
 
         bindSingleton { OrganizationRepository(instance()) }
-        bindSingleton { OrganizationService(instance(), instance(), instance()) }
+        bindSingleton { OrganizationService(instance(), instance(), instance(), instance()) }
         bindSingleton { OrganizationController(instance(), instance()) }
     }
 
