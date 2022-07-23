@@ -65,7 +65,24 @@ class OrganizationController(
             val list = organizationService.listCollectionByOrganization(organizationId).map {
                 VaultCollection.converter.toResponse(it)
             }
-            this.respond(list)
+            val res = CollectionDetailsResponseModelListResponseModel()
+            res.xyObject = "list"
+            res.continuationToken = null
+            res.data = list
+            this.respond(res)
+        }
+    }
+
+    suspend fun listCollectionsByUser(ctx: ApplicationCall) {
+        ctx.apply {
+            val principal = kotwardenPrincipal(this)
+            val list =
+                organizationService.listCollectionByUser(principal.id).map { VaultCollection.converter.toResponse(it) }
+            val res = CollectionDetailsResponseModelListResponseModel()
+            res.xyObject = "list"
+            res.continuationToken = null
+            res.data = list
+            this.respond(res)
         }
     }
 

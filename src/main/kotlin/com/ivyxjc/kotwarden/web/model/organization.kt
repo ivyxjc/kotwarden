@@ -132,3 +132,11 @@ data class OrganizationUserResponseModel(
     var status: OrganizationUserStatusType? = null,
     var accessAll: Boolean? = null,
 )
+
+@kotlinx.serialization.Serializable
+data class CollectionDetailsResponseModelListResponseModel(
+    @SerialName("object")
+    var xyObject: String? = null,
+    var data: List<CollectionDetailsResponseModel>? = null,
+    var continuationToken: String? = null
+)
