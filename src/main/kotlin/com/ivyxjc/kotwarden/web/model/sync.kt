@@ -62,8 +62,7 @@ data class CipherDetailsResponseModel(
     val favorite: Boolean? = null,
     val edit: Boolean? = null,
     val viewPassword: Boolean? = null,
-    // TODO: 2022/7/2
-//    val collectionIds: List<UUID>? = null
+    var collectionIds: List<String>? = null
 )
 
 

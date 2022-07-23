@@ -33,8 +33,6 @@ interface IOrganizationRepository {
     fun save(organization: Organization)
 
     fun listByOrganizationIds(organizationIds: List<String>): List<Organization>
-
-
 }
 
 class UserOrganizationRepository(private val client: DynamoDbEnhancedClient) : IUserOrganizationRepository {

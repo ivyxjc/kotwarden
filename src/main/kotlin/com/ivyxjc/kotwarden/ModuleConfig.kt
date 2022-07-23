@@ -25,7 +25,7 @@ object ModuleConfig {
         bindSingleton { IdentityService(instance(), instance()) }
         bindSingleton { IdentityController(instance()) }
 
-        bindSingleton { SyncService(instance(), instance(), instance(), instance()) }
+        bindSingleton { SyncService(instance(), instance(), instance(), instance(), instance()) }
         bindSingleton { SyncController(instance()) }
 
         bindSingleton { CipherRepository(instance()) }
@@ -41,6 +41,8 @@ object ModuleConfig {
         bindSingleton { UserOrganizationService(instance()) }
 
         bindSingleton { VaultCollectionRepository(instance()) }
+        bindSingleton { CollectionCipherRepository(instance()) }
+        bindSingleton { CollectionService(instance()) }
 
         bindSingleton { OrganizationRepository(instance()) }
         bindSingleton { OrganizationService(instance(), instance(), instance()) }

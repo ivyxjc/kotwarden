@@ -107,9 +107,31 @@ Resources:
                     KeyType: HASH
                 -   AttributeName: OrganizationId
                     KeyType: RANGE
-            ProvisionedThroughput:
-                ReadCapacityUnits: 1
-                WriteCapacityUnits: 1
+            BillingMode: PAY_PER_REQUEST
+    CollectionCipherTable:
+        Type: AWS::DynamoDB::Table
+        Properties:
+            TableName: collection_cipher
+            AttributeDefinitions:
+                -   AttributeName: CollectionId
+                    AttributeType: S
+                -   AttributeName: CipherId
+                    AttributeType: S
+            KeySchema:
+                -   AttributeName: CollectionId
+                    KeyType: HASH
+                -   AttributeName: CipherId
+                    KeyType: RANGE
+            BillingMode: PAY_PER_REQUEST
+            GlobalSecondaryIndexes:
+                -   IndexName: "Reverse-Index"
+                    KeySchema:
+                        -   AttributeName: CipherId
+                            KeyType: HASH
+                        -   AttributeName: CollectionId
+                            KeyType: RANGE
+                    Projection:
+                        ProjectionType: ALL
 
 #    Cipher:
 #        Type: AWS::DynamoDB::Table

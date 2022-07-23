@@ -15,6 +15,7 @@ class SyncService(
     private val cipherService: CipherService,
     private val folderService: FolderService,
     private val organizationService: OrganizationService,
+    private val collectionService: CollectionService
 ) {
     fun sync(principal: KotwardenPrincipal, userId: String): SyncResponseModel {
         val resp = SyncResponseModel()
@@ -50,6 +51,7 @@ class SyncService(
             } else {
                 r.passwordHistory = decodeFromString(it.passwordHistory!!)
             }
+            r.collectionIds = collectionService.listCollectionIdsByCipher(it.id).map { t -> t.collectionId }
             return@map r
         })
         resp.folders.addAll(folders.map {
