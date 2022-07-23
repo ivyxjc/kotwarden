@@ -5,6 +5,7 @@ import com.ivyxjc.kotwarden.model.UserCollection
 import com.ivyxjc.kotwarden.model.VaultCollection
 import com.ivyxjc.kotwarden.util.COLLECTION_PREFIX
 import com.ivyxjc.kotwarden.util.convert
+import com.ivyxjc.kotwarden.web.kError
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient
 import software.amazon.awssdk.enhanced.dynamodb.Key
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema
@@ -14,9 +15,10 @@ import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest
 
 interface IVaultCollectionRepository {
     fun save(vaultCollection: VaultCollection)
-
     fun listByOrganization(organizationId: String): List<VaultCollection>
+    fun listByCollectionIds(collectionIds: List<String>): List<VaultCollection>
 }
+
 
 interface ICollectionCipherRepository {
     fun save(collectionCipher: CollectionCipher)
@@ -27,6 +29,7 @@ interface ICollectionCipherRepository {
 class VaultCollectionRepository(private val client: DynamoDbEnhancedClient) : IVaultCollectionRepository {
     private val schema = TableSchema.fromBean(VaultCollection::class.java)
     private val table = client.table(VaultCollection.TABLE_NAME, schema)
+    private val idx = table.index(VaultCollection.SK_INDEX)
 
     override fun save(vaultCollection: VaultCollection) {
         table.putItem(vaultCollection)
@@ -41,6 +44,26 @@ class VaultCollectionRepository(private val client: DynamoDbEnhancedClient) : IV
         return convert(iter)
     }
 
+    override fun listByCollectionIds(collectionIds: List<String>): List<VaultCollection> {
+        val list = mutableListOf<VaultCollection>()
+
+        collectionIds.forEach {
+            // TODO: 2022/7/23 sort value should start with cipher- or organization-
+            val queryConditional = QueryConditional.keyEqualTo(Key.builder().partitionValue(it).build())
+            val resp = idx.query(
+                QueryEnhancedRequest.builder().queryConditional(queryConditional).build()
+            )
+            val tmpList = convert(resp)
+            if (tmpList.size > 1) {
+                kError("Duplicate collection with same collection id")
+            }
+            if (tmpList.isEmpty()) {
+                kError("Fail to find collection by id: $it")
+            }
+            list.add(tmpList[0])
+        }
+        return list
+    }
 }
 
 class CollectionCipherRepository(private val client: DynamoDbEnhancedClient) : ICollectionCipherRepository {

@@ -122,6 +122,7 @@ class UserOrganizationService(
 class OrganizationService(
     private val userRepository: IUserRepository,
     private val organizationRepository: IOrganizationRepository,
+    private val userCollectionRepository: IUserCollectionRepository,
     private val userOrganizationRepository: IUserOrganizationRepository,
     private val vaultCollectionRepository: IVaultCollectionRepository
 ) {
@@ -174,6 +175,11 @@ class OrganizationService(
 
     fun listCollectionByOrganization(organizationId: String): List<VaultCollection> {
         return vaultCollectionRepository.listByOrganization(organizationId)
+    }
+
+    fun listCollectionByUser(userId: String): List<VaultCollection> {
+        val userCollections = userCollectionRepository.listByUserId(userId)
+        return vaultCollectionRepository.listByCollectionIds(userCollections.map { it.collectionId })
     }
 
     fun listUserOrganizationsByOrganization(organizationId: String): List<Pair<UserOrganization, User>> {

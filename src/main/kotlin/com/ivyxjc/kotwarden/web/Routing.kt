@@ -104,6 +104,11 @@ fun Routing.folder(folderController: FolderController) {
 
 fun Routing.organization(organizationController: OrganizationController) {
     authenticate("auth-jwt") {
+        route("api/collections") {
+            get("") {
+                organizationController.listCollectionsByUser(this.context)
+            }
+        }
         route("api/plans") {
             get("") {
                 organizationController.getPlans(this.context)
