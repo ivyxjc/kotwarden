@@ -108,6 +108,21 @@ Resources:
                 -   AttributeName: OrganizationId
                     KeyType: RANGE
             BillingMode: PAY_PER_REQUEST
+    UserCollectionTable:
+        Type: AWS::DynamoDB::Table
+        Properties:
+            TableName: user_collection
+            AttributeDefinitions:
+                -   AttributeName: UserId
+                    AttributeType: S
+                -   AttributeName: CollectionId
+                    AttributeType: S
+            KeySchema:
+                -   AttributeName: UserId
+                    KeyType: HASH
+                -   AttributeName: CollectionId
+                    KeyType: RANGE
+            BillingMode: PAY_PER_REQUEST
     CollectionCipherTable:
         Type: AWS::DynamoDB::Table
         Properties:
