@@ -4,9 +4,7 @@ import com.ivyxjc.kotwarden.model.Cipher
 import com.ivyxjc.kotwarden.model.Organization
 import com.ivyxjc.kotwarden.model.VaultCollection
 import com.ivyxjc.kotwarden.web.kotwardenPrincipal
-import com.ivyxjc.kotwarden.web.model.CipherDetailsResponseModelListResponseModel
-import com.ivyxjc.kotwarden.web.model.OrganizationCreateRequestModel
-import com.ivyxjc.kotwarden.web.model.PlanResponseModel
+import com.ivyxjc.kotwarden.web.model.*
 import com.ivyxjc.kotwarden.web.service.CipherService
 import com.ivyxjc.kotwarden.web.service.OrganizationService
 import io.ktor.http.*
@@ -68,6 +66,28 @@ class OrganizationController(
                 VaultCollection.converter.toResponse(it)
             }
             this.respond(list)
+        }
+    }
+
+    suspend fun listUsers(organizationId: String, ctx: ApplicationCall) {
+        ctx.apply {
+            val list = organizationService.listUserOrganizationsByOrganization(organizationId)
+            val resp = OrganizationUserBulkResponseModelListResponseModel()
+            resp.xyObject = "list"
+            resp.continuationToken = null
+            resp.data = list.map {
+                val res = OrganizationUserResponseModel()
+                res.xyObject = "organizationUserUserDetails"
+                res.id = it.first.organizationId
+                res.userId = it.first.userId
+                res.name = it.second.name
+                res.email = it.second.email
+                res.status = it.first.status
+                res.type = it.first.type
+                res.accessAll = it.first.accessAll
+                return@map res
+            }
+            this.respond(resp)
         }
     }
 

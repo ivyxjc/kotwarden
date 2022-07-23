@@ -1,9 +1,6 @@
 package com.ivyxjc.kotwarden.model
 
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.*
 import java.time.OffsetDateTime
 
 //Owner:0 ; Admin:1 ; User:2 ; Manager:3
@@ -32,14 +29,17 @@ class UserOrganization {
 
     companion object {
         const val TABLE_NAME = "user_organization"
+        const val REVERSE_INDEX = "Reverse-Index"
     }
 
     @get:DynamoDbPartitionKey
+    @get:DynamoDbSecondarySortKey(indexNames = [REVERSE_INDEX])
     @get:DynamoDbAttribute("UserId")
     lateinit var userId: String
 
 
     @get:DynamoDbSortKey
+    @get:DynamoDbSecondaryPartitionKey(indexNames = [REVERSE_INDEX])
     @get:DynamoDbAttribute("OrganizationId")
     lateinit var organizationId: String
 

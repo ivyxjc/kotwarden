@@ -12,13 +12,16 @@ import com.ivyxjc.kotwarden.web.model.RegisterRequest
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient
 import software.amazon.awssdk.enhanced.dynamodb.Key
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema
+import software.amazon.awssdk.enhanced.dynamodb.model.BatchGetItemEnhancedRequest
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest
+import software.amazon.awssdk.enhanced.dynamodb.model.ReadBatch
 import java.util.*
 
 interface IUserRepository {
     fun findByEmail(email: String): User?
     fun findById(id: String): User?
+    fun listByIds(ids: List<String>): List<User>
     fun save(user: User)
 }
 
@@ -48,6 +51,13 @@ class UserRepository(private val client: DynamoDbEnhancedClient) : IUserReposito
     override fun findById(id: String): User? {
         val key = Key.builder().partitionValue(id).sortValue(id).build()
         return table.getItem(key)
+    }
+
+    override fun listByIds(ids: List<String>): List<User> {
+        val batches = ReadBatch.builder(User::class.java).mappedTableResource(table)
+        ids.forEach { it -> batches.addGetItem(Key.builder().partitionValue(it).sortValue(it).build()) }
+        val request = BatchGetItemEnhancedRequest.builder().readBatches(batches.build()).build()
+        return convert(client.batchGetItem(request), table)
     }
 
     override fun save(user: User) {

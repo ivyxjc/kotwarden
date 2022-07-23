@@ -1,10 +1,12 @@
 package com.ivyxjc.kotwarden.web.service
 
 import com.ivyxjc.kotwarden.model.Organization
+import com.ivyxjc.kotwarden.model.User
 import com.ivyxjc.kotwarden.model.UserOrganization
 import com.ivyxjc.kotwarden.model.VaultCollection
 import com.ivyxjc.kotwarden.util.COLLECTION_PREFIX
 import com.ivyxjc.kotwarden.util.ORGANIZATION_PREFIX
+import com.ivyxjc.kotwarden.util.combine
 import com.ivyxjc.kotwarden.util.convert
 import com.ivyxjc.kotwarden.web.kError
 import com.ivyxjc.kotwarden.web.model.KotwardenPrincipal
@@ -25,8 +27,8 @@ import java.util.*
 interface IUserOrganizationRepository {
     fun save(userOrganization: UserOrganization)
     fun listConfirmedByUserId(userId: String): List<UserOrganization>
-
-    fun getByIdAndUser(id: String, userId: String): UserOrganization?
+    fun getByOrganizationAndUser(organizationId: String, userId: String): UserOrganization?
+    fun listByOrganization(organizationId: String): List<UserOrganization>
 }
 
 interface IOrganizationRepository {
@@ -42,6 +44,7 @@ class UserOrganizationRepository(private val client: DynamoDbEnhancedClient) : I
 
     private val schema = TableSchema.fromBean(UserOrganization::class.java)
     private val table = client.table(UserOrganization.TABLE_NAME, schema)
+    private val idx = table.index(UserOrganization.REVERSE_INDEX)
 
     override fun save(userOrganization: UserOrganization) {
         table.putItem(userOrganization)
@@ -58,8 +61,9 @@ class UserOrganizationRepository(private val client: DynamoDbEnhancedClient) : I
         return convert(iter)
     }
 
-    override fun getByIdAndUser(id: String, userId: String): UserOrganization? {
-        val queryConditional = QueryConditional.keyEqualTo(Key.builder().partitionValue(userId).sortValue(id).build())
+    override fun getByOrganizationAndUser(organizationId: String, userId: String): UserOrganization? {
+        val queryConditional =
+            QueryConditional.keyEqualTo(Key.builder().partitionValue(userId).sortValue(organizationId).build())
         val filter = Expression.builder().expression("#status = :status")
             .expressionNames(mapOf("#status" to "Status"))
             .expressionValues(mapOf(":status" to AttributeValue.fromN(UserOrganization.Status.Confirmed.toString())))
@@ -76,6 +80,11 @@ class UserOrganizationRepository(private val client: DynamoDbEnhancedClient) : I
             kError("Internal data error, please contact system administrator")
         }
         return list[0]
+    }
+
+    override fun listByOrganization(organizationId: String): List<UserOrganization> {
+        val queryConditional = QueryConditional.keyEqualTo(Key.builder().partitionValue(organizationId).build())
+        return convert(idx.query(queryConditional))
     }
 }
 
@@ -105,12 +114,13 @@ class UserOrganizationService(
     }
 
     fun getByIdAndUser(id: String, userId: String): UserOrganization? {
-        return userOrganizationRepository.getByIdAndUser(id, userId)
+        return userOrganizationRepository.getByOrganizationAndUser(id, userId)
     }
 }
 
 
 class OrganizationService(
+    private val userRepository: IUserRepository,
     private val organizationRepository: IOrganizationRepository,
     private val userOrganizationRepository: IUserOrganizationRepository,
     private val vaultCollectionRepository: IVaultCollectionRepository
@@ -166,4 +176,9 @@ class OrganizationService(
         return vaultCollectionRepository.listByOrganization(organizationId)
     }
 
+    fun listUserOrganizationsByOrganization(organizationId: String): List<Pair<UserOrganization, User>> {
+        val userOrganizations = userOrganizationRepository.listByOrganization(organizationId)
+        val users = userRepository.listByIds(userOrganizations.map { it.userId })
+        return combine(userOrganizations, { uo -> uo.userId }, users, { u -> u.id })
+    }
 }

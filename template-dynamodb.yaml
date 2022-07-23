@@ -108,6 +108,15 @@ Resources:
                 -   AttributeName: OrganizationId
                     KeyType: RANGE
             BillingMode: PAY_PER_REQUEST
+            GlobalSecondaryIndexes:
+                -   IndexName: "Reverse-Index"
+                    KeySchema:
+                        -   AttributeName: OrganizationId
+                            KeyType: HASH
+                        -   AttributeName: UserId
+                            KeyType: RANGE
+                    Projection:
+                        ProjectionType: ALL
     UserCollectionTable:
         Type: AWS::DynamoDB::Table
         Properties:
