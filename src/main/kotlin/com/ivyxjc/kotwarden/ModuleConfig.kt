@@ -40,9 +40,11 @@ object ModuleConfig {
         bindSingleton { UserOrganizationRepository(instance()) }
         bindSingleton { UserOrganizationService(instance()) }
 
+        bindSingleton { UserCollectionRepository(instance()) }
+
         bindSingleton { VaultCollectionRepository(instance()) }
         bindSingleton { CollectionCipherRepository(instance()) }
-        bindSingleton { CollectionService(instance()) }
+        bindSingleton { CollectionService(instance(), instance(), instance()) }
 
         bindSingleton { OrganizationRepository(instance()) }
         bindSingleton { OrganizationService(instance(), instance(), instance()) }

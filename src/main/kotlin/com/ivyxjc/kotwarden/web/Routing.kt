@@ -115,9 +115,11 @@ fun Routing.organization(organizationController: OrganizationController) {
             get("") {
                 organizationController.listOrganizations(this.context)
             }
+            get("{id}/collections") {
+                val id = this.context.parameters.getOrFail<String>("id")
+                organizationController.listCollectionsByOrganization(id, this.context)
+            }
         }
-
-
     }
 
 }

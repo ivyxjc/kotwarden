@@ -2,6 +2,7 @@ package com.ivyxjc.kotwarden.web.service
 
 import com.ivyxjc.kotwarden.Config
 import com.ivyxjc.kotwarden.model.User
+import com.ivyxjc.kotwarden.model.UserCollection
 import com.ivyxjc.kotwarden.util.USER_PREFIX
 import com.ivyxjc.kotwarden.util.convert
 import com.ivyxjc.kotwarden.util.hashPassword
@@ -19,6 +20,11 @@ interface IUserRepository {
     fun findByEmail(email: String): User?
     fun findById(id: String): User?
     fun save(user: User)
+}
+
+interface IUserCollectionRepository {
+    fun listByUserId(userId: String): List<UserCollection>
+
 }
 
 class UserRepository(private val client: DynamoDbEnhancedClient) : IUserRepository {
@@ -47,6 +53,16 @@ class UserRepository(private val client: DynamoDbEnhancedClient) : IUserReposito
     override fun save(user: User) {
         return table.putItem(user)
     }
+}
+
+class UserCollectionRepository(private val client: DynamoDbEnhancedClient) : IUserCollectionRepository {
+    private val schema = TableSchema.fromBean(UserCollection::class.java)
+    private val table = client.table(UserCollection.TABLE_NAME, schema)
+    override fun listByUserId(userId: String): List<UserCollection> {
+        val queryConditional = QueryConditional.keyEqualTo(Key.builder().partitionValue(userId).build());
+        return convert(table.query(queryConditional))
+    }
+
 }
 
 interface IAccountService {
