@@ -10,25 +10,24 @@ import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
 import org.mapstruct.factory.Mappers
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.*
 import java.time.OffsetDateTime
 
 @DynamoDbBean
 class Cipher {
     companion object {
         const val TABLE_NAME = "resource"
+        const val SK_INDEX = "SK-Index"
         val converter: CipherConverter = Mappers.getMapper(CipherConverter::class.java)
     }
 
     @get:DynamoDbPartitionKey
     @get:DynamoDbAttribute("PK")
-    lateinit var userId: String
+    lateinit var ownerId: String
 
     @get:DynamoDbSortKey
     @get:DynamoDbAttribute("SK")
+    @get:DynamoDbSecondaryPartitionKey(indexNames = [SK_INDEX])
     lateinit var id: String
 
     @get:DynamoDbAttribute("CreatedAt")
@@ -123,6 +122,7 @@ interface CipherConverter {
         Mapping(target = "data", ignore = true),
         Mapping(target = "edit", constant = "true"),
         Mapping(target = "viewPassword", constant = "true"),
+        Mapping(target = "revisionDate", source = "updatedAt")
     )
     fun toCipherDetailResponse(cipher: Cipher): CipherDetailsResponseModel
 }

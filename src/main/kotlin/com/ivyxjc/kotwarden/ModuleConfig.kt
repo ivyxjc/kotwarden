@@ -29,7 +29,7 @@ object ModuleConfig {
         bindSingleton { SyncController(instance()) }
 
         bindSingleton { CipherRepository(instance()) }
-        bindSingleton { CipherService(instance(), instance()) }
+        bindSingleton { CipherService(instance(), instance(), instance(), instance()) }
         bindSingleton { CipherController(instance()) }
 
         bindSingleton { FolderRepository(instance()) }
@@ -38,6 +38,8 @@ object ModuleConfig {
 
 
         bindSingleton { UserOrganizationRepository(instance()) }
+        bindSingleton { UserOrganizationService(instance()) }
+
         bindSingleton { VaultCollectionRepository(instance()) }
 
         bindSingleton { OrganizationRepository(instance()) }

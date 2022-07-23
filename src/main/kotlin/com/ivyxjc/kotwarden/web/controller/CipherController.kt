@@ -1,7 +1,11 @@
 package com.ivyxjc.kotwarden.web.controller
 
+import com.ivyxjc.kotwarden.util.isEmpty
+import com.ivyxjc.kotwarden.util.isNotEmpty
+import com.ivyxjc.kotwarden.web.kError
 import com.ivyxjc.kotwarden.web.kotwardenPrincipal
 import com.ivyxjc.kotwarden.web.model.CipherBulkDeleteRequestModel
+import com.ivyxjc.kotwarden.web.model.CipherCreateRequestModel
 import com.ivyxjc.kotwarden.web.model.CipherRequestModel
 import com.ivyxjc.kotwarden.web.model.ImportCiphersRequestModel
 import com.ivyxjc.kotwarden.web.service.CipherService
@@ -17,6 +21,23 @@ class CipherController(private val cipherService: CipherService) {
             val principal = kotwardenPrincipal(this)
             val request = this.receive<CipherRequestModel>()
             this.respond(cipherService.createCipher(principal, request))
+        }
+    }
+
+
+    /**
+     * Called when creating a new org-owned cipher, or cloning a cipher (whether
+     * user- or org-owned). When cloning a cipher to a user-owned cipher,
+     * `organizationId` is null.
+     */
+    suspend fun createCipherRequest(ctx: ApplicationCall) {
+        ctx.apply {
+            val principal = kotwardenPrincipal(this)
+            val request = this.receive<CipherCreateRequestModel>()
+            if (isNotEmpty(request.cipher.organizationId) && isEmpty(request.collectionIds)) {
+                kError("You must select at least one collection.")
+            }
+            this.respond(cipherService.createShareCipher(principal, request))
         }
     }
 

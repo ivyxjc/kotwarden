@@ -6,8 +6,10 @@ import com.ivyxjc.kotwarden.model.VaultCollection
 import com.ivyxjc.kotwarden.util.COLLECTION_PREFIX
 import com.ivyxjc.kotwarden.util.ORGANIZATION_PREFIX
 import com.ivyxjc.kotwarden.util.convert
+import com.ivyxjc.kotwarden.web.kError
 import com.ivyxjc.kotwarden.web.model.KotwardenPrincipal
 import com.ivyxjc.kotwarden.web.model.OrganizationCreateRequestModel
+import org.slf4j.LoggerFactory
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient
 import software.amazon.awssdk.enhanced.dynamodb.Expression
 import software.amazon.awssdk.enhanced.dynamodb.Key
@@ -23,6 +25,8 @@ import java.util.*
 interface IUserOrganizationRepository {
     fun save(userOrganization: UserOrganization)
     fun listConfirmedByUserId(userId: String): List<UserOrganization>
+
+    fun getByIdAndUser(id: String, userId: String): UserOrganization?
 }
 
 interface IOrganizationRepository {
@@ -30,9 +34,14 @@ interface IOrganizationRepository {
 
     fun listByOrganizationIds(organizationIds: List<String>): List<Organization>
 
+
 }
 
 class UserOrganizationRepository(private val client: DynamoDbEnhancedClient) : IUserOrganizationRepository {
+    companion object {
+        private val log = LoggerFactory.getLogger(UserOrganizationRepository::class.java)
+    }
+
     private val schema = TableSchema.fromBean(UserOrganization::class.java)
     private val table = client.table(UserOrganization.TABLE_NAME, schema)
 
@@ -42,6 +51,17 @@ class UserOrganizationRepository(private val client: DynamoDbEnhancedClient) : I
 
     override fun listConfirmedByUserId(userId: String): List<UserOrganization> {
         val queryConditional = QueryConditional.keyEqualTo(Key.builder().partitionValue(userId).build())
+        val filter = Expression.builder().expression("#status = :status").expressionNames(mapOf("#status" to "Status"))
+            .expressionValues(mapOf(":status" to AttributeValue.fromN(UserOrganization.Status.Confirmed.toString())))
+            .build()
+        val iter = table.query(
+            QueryEnhancedRequest.builder().queryConditional(queryConditional).filterExpression(filter).build()
+        )
+        return convert(iter)
+    }
+
+    override fun getByIdAndUser(id: String, userId: String): UserOrganization? {
+        val queryConditional = QueryConditional.keyEqualTo(Key.builder().partitionValue(userId).sortValue(id).build())
         val filter = Expression.builder().expression("#status = :status")
             .expressionNames(mapOf("#status" to "Status"))
             .expressionValues(mapOf(":status" to AttributeValue.fromN(UserOrganization.Status.Confirmed.toString())))
@@ -49,7 +69,15 @@ class UserOrganizationRepository(private val client: DynamoDbEnhancedClient) : I
         val iter = table.query(
             QueryEnhancedRequest.builder().queryConditional(queryConditional).filterExpression(filter).build()
         )
-        return convert(iter)
+        val list = convert(iter)
+        if (list.isEmpty()) {
+            return null
+        }
+        if (list.size > 1) {
+            log.error("[Duplicate][UserOrganization] duplicate records with same id+userId")
+            kError("Internal data error, please contact system administrator")
+        }
+        return list[0]
     }
 }
 
@@ -70,6 +98,19 @@ class OrganizationRepository(private val client: DynamoDbEnhancedClient) : IOrga
         return convert(client.batchGetItem(request), table)
     }
 }
+
+class UserOrganizationService(
+    private val userOrganizationRepository: IUserOrganizationRepository
+) {
+    fun listByUser(userId: String): List<UserOrganization> {
+        return userOrganizationRepository.listConfirmedByUserId(userId)
+    }
+
+    fun getByIdAndUser(id: String, userId: String): UserOrganization? {
+        return userOrganizationRepository.getByIdAndUser(id, userId)
+    }
+}
+
 
 class OrganizationService(
     private val organizationRepository: IOrganizationRepository,

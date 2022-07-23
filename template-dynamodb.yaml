@@ -23,6 +23,17 @@ Resources:
                 ReadCapacityUnits: 1
                 WriteCapacityUnits: 1
             GlobalSecondaryIndexes:
+                -   IndexName: "SK-Index"
+                    KeySchema:
+                        -   AttributeName: SK
+                            KeyType: HASH
+                        -   AttributeName: PK
+                            KeyType: RANGE
+                    Projection:
+                        ProjectionType: ALL
+                    ProvisionedThroughput:
+                        ReadCapacityUnits: 1
+                        WriteCapacityUnits: 1
                 -   IndexName: "Email-Index"
                     KeySchema:
                         -   AttributeName: Email

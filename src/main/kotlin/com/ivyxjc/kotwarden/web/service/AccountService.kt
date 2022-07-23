@@ -24,11 +24,11 @@ interface IUserRepository {
 class UserRepository(private val client: DynamoDbEnhancedClient) : IUserRepository {
     private val schema = TableSchema.fromBean(User::class.java)
     private val table = client.table(User.TABLE_NAME, schema)
+    private val emailIndex = table.index(User.Email_INDEX)
 
     override fun findByEmail(email: String): User? {
         val queryConditional = QueryConditional.keyEqualTo(Key.builder().partitionValue(email).build())
-        val idx = table.index(User.Email_INDEX)
-        val iter = idx.query(
+        val iter = emailIndex.query(
             QueryEnhancedRequest.builder().queryConditional(queryConditional).build()
         )
         val list = convert(iter)

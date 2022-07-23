@@ -26,7 +26,7 @@ data class CipherRequestModel(
     val card: CipherCardModel? = null,
     val identity: CipherIdentityModel? = null,
     val secureNote: CipherSecureNoteModel? = null,
-    @kotlinx.serialization.Serializable(with = OffsetDatetimeNullableSerializer::class) val lastKnownRevisionDate: OffsetDateTime? = null
+    @kotlinx.serialization.Serializable(with = OffsetDatetimeNullableSerializer::class) var lastKnownRevisionDate: OffsetDateTime? = null
 )
 
 @kotlinx.serialization.Serializable

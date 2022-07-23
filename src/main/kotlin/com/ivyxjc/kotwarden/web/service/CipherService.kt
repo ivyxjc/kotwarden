@@ -7,22 +7,30 @@ import com.ivyxjc.kotwarden.web.model.*
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient
 import software.amazon.awssdk.enhanced.dynamodb.Key
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema
-import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional
+import software.amazon.awssdk.enhanced.dynamodb.model.*
 import java.time.OffsetDateTime
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 interface ICipherRepository {
     fun save(cipher: Cipher)
+
     fun delete(ownerId: String, id: String): Cipher?
 
     fun findByUser(userId: String): List<Cipher>
 
     fun findByOwnerAndId(ownerId: String, id: String): Cipher?
+
+    fun findById(id: String): Cipher?
+
+    fun updateCipherById(cipher: Cipher)
+
 }
 
 class CipherRepository(private val client: DynamoDbEnhancedClient) : ICipherRepository {
     private val schema = TableSchema.fromBean(Cipher::class.java)
     private val table = client.table(Cipher.TABLE_NAME, schema)
+    private val skIndex = table.index(Cipher.SK_INDEX)
 
     override fun save(cipher: Cipher) {
         return table.putItem(cipher)
@@ -49,14 +57,68 @@ class CipherRepository(private val client: DynamoDbEnhancedClient) : ICipherRepo
             list[0]
         }
     }
+
+    override fun findById(id: String): Cipher? {
+        val queryConditional = QueryConditional.keyEqualTo(Key.builder().partitionValue(id).build())
+        val iter = skIndex.query(
+            QueryEnhancedRequest.builder().queryConditional(queryConditional).build()
+        )
+        val list = convert(iter)
+        return if (list.isNotEmpty()) {
+            if (list.size > 1) {
+                kError("duplicate cipher id")
+            }
+            return list[0]
+        } else {
+            null
+        }
+    }
+
+    override fun updateCipherById(cipher: Cipher) {
+        val storedCipher = findById(cipher.id)!! ?: kError("Fail to share the cipher")
+        val deleteRequest = TransactDeleteItemEnhancedRequest.builder()
+            .key(Key.builder().partitionValue(storedCipher.ownerId).sortValue(cipher.id).build()).build()
+        val insertRequest = TransactPutItemEnhancedRequest.builder(Cipher::class.java).item(cipher).build();
+        val transaction = TransactWriteItemsEnhancedRequest.builder().addDeleteItem(table, deleteRequest)
+            .addPutItem(table, insertRequest).build();
+        client.transactWriteItems(transaction)
+    }
 }
 
 
-class CipherService(private val cipherRepository: ICipherRepository, private val folderService: FolderService) {
+class CipherService(
+    private val cipherRepository: ICipherRepository,
+    private val folderService: FolderService,
+    private val organizationService: OrganizationService,
+    private val userOrganizationService: UserOrganizationService
+) {
+
+    fun createPlainCipher(principal: KotwardenPrincipal, request: CipherRequestModel): Cipher {
+        val cipher = newCipher(request.type, request.name)
+        cipher.ownerId = principal.id
+        cipherRepository.save(cipher)
+        return cipher
+    }
 
     fun createCipher(kotwardenPrincipal: KotwardenPrincipal, request: CipherRequestModel): CipherResponseModel {
         val cipher = newCipher(request.type, request.name)
-        return createUpdateCipherFromRequest(cipher, request, kotwardenPrincipal)
+        return createUpdateCipherFromRequest(cipher, request, kotwardenPrincipal = kotwardenPrincipal)
+    }
+
+    fun createShareCipher(principal: KotwardenPrincipal, request: CipherCreateRequestModel): CipherResponseModel {
+        val cipher = newCipher(request.cipher.type, request.cipher.name)
+        return createUpdateCipherFromRequest(cipher, request.cipher, kotwardenPrincipal = principal)
+    }
+
+    fun shareCipherById(
+        principal: KotwardenPrincipal, cipherId: String, request: CipherCreateRequestModel
+    ): CipherResponseModel {
+        val cipher = cipherRepository.findById(cipherId) ?: kError("Cipher does not exist")
+        // TODO: 2022/7/22 check whether the user can access cipher
+        if (isNotEmpty(request.cipher.organizationId)) {
+            // TODO: 2022/7/22
+        }
+        return createUpdateCipherFromRequest(cipher, request.cipher, true, principal)
     }
 
     fun deleteCipher(kotwardenPrincipal: KotwardenPrincipal, id: String): CipherResponseModel {
@@ -76,7 +138,7 @@ class CipherService(private val cipherRepository: ICipherRepository, private val
         kotwardenPrincipal: KotwardenPrincipal, cipherId: String, request: CipherRequestModel
     ): CipherResponseModel {
         val cipher = findById(kotwardenPrincipal.id, cipherId) ?: kError("Cipher doesn't exist")
-        return createUpdateCipherFromRequest(cipher, request, kotwardenPrincipal)
+        return createUpdateCipherFromRequest(cipher, request, kotwardenPrincipal = kotwardenPrincipal)
     }
 
 
@@ -84,7 +146,7 @@ class CipherService(private val cipherRepository: ICipherRepository, private val
         kotwardenPrincipal: KotwardenPrincipal, importData: ImportCiphersRequestModel
     ) {
         importData.ciphers?.forEach {
-            createUpdateCipherFromRequest(newCipher(it.type, it.name), it, kotwardenPrincipal)
+            createUpdateCipherFromRequest(newCipher(it.type, it.name), it, kotwardenPrincipal = kotwardenPrincipal)
         }
     }
 
@@ -97,17 +159,35 @@ class CipherService(private val cipherRepository: ICipherRepository, private val
     }
 
     private fun createUpdateCipherFromRequest(
-        cipher: Cipher?, request: CipherRequestModel, kotwardenPrincipal: KotwardenPrincipal
+        cipher: Cipher?,
+        request: CipherRequestModel,
+        forceUpdate: Boolean = false,
+        kotwardenPrincipal: KotwardenPrincipal
     ): CipherResponseModel {
         cipher!!
-        if (request.lastKnownRevisionDate != null && cipher.updatedAt != request.lastKnownRevisionDate) {
+        if (request.lastKnownRevisionDate != null && distance(
+                cipher.updatedAt, request.lastKnownRevisionDate!!, ChronoUnit.MILLIS
+            ) > 1
+        ) {
             kError("The client copy of this cipher is out of date. Resync the client and try again.")
         }
-        if (!isEmpty(cipher.organizationId) && cipher.organizationId !== request.organizationId) {
+        if (!isEmpty(cipher.organizationId) && cipher.organizationId != request.organizationId) {
             kError("Organization mismatch. Please re-sync the client before updating the cipher")
         }
 
-        cipher.userId = kotwardenPrincipal.id
+        if (isNotEmpty(request.organizationId)) {
+            val userOrganization =
+                userOrganizationService.getByIdAndUser(request.organizationId!!, kotwardenPrincipal.id)
+            if (userOrganization == null) {
+                kError("You don't have permission to add item to organization")
+            } else {
+                // TODO: 2022/7/22 check where user have access to edit the cipher
+                cipher.organizationId = request.organizationId
+                cipher.ownerId = request.organizationId
+            }
+        } else {
+            cipher.ownerId = kotwardenPrincipal.id
+        }
 
         val folder = if (!isEmpty(request.folderId)) {
             folderService.findById(request.folderId!!, kotwardenPrincipal.id) ?: kError("Folder doesn't exist")
@@ -129,13 +209,26 @@ class CipherService(private val cipherRepository: ICipherRepository, private val
         cipher.folderId = folder?.id
         cipher.fields = encodeToString(request.fields)
         cipher.passwordHistory = encodeToString(request.passwordHistory)
-        cipherRepository.save(cipher)
+        if (forceUpdate) {
+            cipherRepository.updateCipherById(cipher)
+        } else {
+            cipherRepository.save(cipher)
+        }
 
         val cipherResponseModel = Cipher.converter.toResponse(cipher, request)
         cipherResponseModel.edit = true
         cipherResponseModel.viewPassword = true
         cipherResponseModel.revisionDate = OffsetDateTime.now()
         return cipherResponseModel
+    }
+
+    private fun save(cipher: Cipher, forceUpdate: Boolean) {
+        if (!forceUpdate) {
+            cipherRepository.save(cipher)
+        } else {
+            val storedCipher = cipherRepository.findById(cipher.id)
+
+        }
     }
 
     private fun newCipher(type: Int, name: String): Cipher {

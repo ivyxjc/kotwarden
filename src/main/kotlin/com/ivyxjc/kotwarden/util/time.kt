@@ -6,6 +6,8 @@ import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
+import java.time.temporal.ChronoUnit
+import kotlin.math.abs
 
 private val log = LoggerFactory.getLogger("TimeUtils")
 val pattern = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXXXX").withZone(ZoneOffset.UTC)
@@ -35,4 +37,8 @@ fun format(dateTime: OffsetDateTime?): String {
         return EMPTY_STRING
     }
     return dateTime.format(pattern)
+}
+
+fun distance(dt1: OffsetDateTime, dt2: OffsetDateTime, unit: ChronoUnit): Long {
+    return abs(unit.between(dt1, dt2))
 }

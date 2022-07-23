@@ -50,6 +50,13 @@ fun Routing.cipher(cipherController: CipherController) {
             post("") {
                 cipherController.createCipher(this.context)
             }
+
+            post("create") {
+                // Called when creating a new org-owned cipher, or cloning a cipher (whether
+                // user- or org-owned). When cloning a cipher to a user-owned cipher,
+                // `organizationId` is null.
+                cipherController.createCipherRequest(this.context)
+            }
             put("{id}") {
                 val id = this.context.parameters.getOrFail<String>("id")
                 cipherController.updateCipher(this.context, id)
@@ -105,7 +112,12 @@ fun Routing.organization(organizationController: OrganizationController) {
             post("") {
                 organizationController.createOrganization(this.context)
             }
+            get("") {
+                organizationController.listOrganizations(this.context)
+            }
         }
+
+
     }
 
 }
