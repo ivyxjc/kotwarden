@@ -1,10 +1,13 @@
 package com.ivyxjc.kotwarden.web.controller
 
+import com.ivyxjc.kotwarden.model.Cipher
 import com.ivyxjc.kotwarden.model.Organization
 import com.ivyxjc.kotwarden.model.VaultCollection
 import com.ivyxjc.kotwarden.web.kotwardenPrincipal
+import com.ivyxjc.kotwarden.web.model.CipherDetailsResponseModelListResponseModel
 import com.ivyxjc.kotwarden.web.model.OrganizationCreateRequestModel
 import com.ivyxjc.kotwarden.web.model.PlanResponseModel
+import com.ivyxjc.kotwarden.web.service.CipherService
 import com.ivyxjc.kotwarden.web.service.OrganizationService
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -13,7 +16,9 @@ import io.ktor.server.response.*
 import kotlinx.serialization.json.*
 
 
-class OrganizationController(private val organizationService: OrganizationService) {
+class OrganizationController(
+    private val organizationService: OrganizationService, private val cipherService: CipherService
+) {
     suspend fun getPlans(ctx: ApplicationCall) {
         ctx.apply {
             val json = buildJsonObject {
@@ -43,6 +48,19 @@ class OrganizationController(private val organizationService: OrganizationServic
             this.respond(HttpStatusCode.OK, list)
         }
     }
+
+    suspend fun listOrganizationDetail(organizationId: String, ctx: ApplicationCall) {
+        ctx.apply {
+            val ciphers = cipherService.listByOrganization(organizationId)
+                .map { it -> Cipher.converter.toCipherDetailResponse(it) }
+            val res = CipherDetailsResponseModelListResponseModel()
+            res.xyObject = "list"
+            res.data = ciphers
+            res.continuationToken = null
+            this.respond(HttpStatusCode.OK, res)
+        }
+    }
+
 
     suspend fun listCollectionsByOrganization(organizationId: String, ctx: ApplicationCall) {
         ctx.apply {

@@ -42,7 +42,7 @@ fun Routing.sync(syncController: SyncController) {
     }
 }
 
-fun Routing.cipher(cipherController: CipherController) {
+fun Routing.cipher(cipherController: CipherController, organizationController: OrganizationController) {
 
     authenticate("auth-jwt") {
         route("api/ciphers") {
@@ -70,6 +70,11 @@ fun Routing.cipher(cipherController: CipherController) {
             }
             put("delete") {
                 cipherController.deleteCiphers(this.context)
+            }
+            get("organization-details") {
+                val parameters = this.context.request.queryParameters
+                val organizationId = parameters.getOrFail<String>("organizationId")
+                organizationController.listOrganizationDetail(organizationId, this.context)
             }
         }
     }

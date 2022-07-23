@@ -104,5 +104,13 @@ data class PlanResponseModel(
     val premiumAccessOptionPrice: Double? = 0.0
 )
 
+@kotlinx.serialization.Serializable
+data class CipherDetailsResponseModelListResponseModel(
+    @SerialName("object")
+    var xyObject: String? = null,
+    var data: List<CipherDetailsResponseModel>? = null,
+    var continuationToken: String? = null
+)
+
 
 
