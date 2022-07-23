@@ -55,7 +55,7 @@ fun Application.main() {
         account(accountController)
         identity(identityController)
         sync(syncController)
-        cipher(cipherController)
+        cipher(cipherController, organizationController)
         folder(folderController)
         organization(organizationController)
     }

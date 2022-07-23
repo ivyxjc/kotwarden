@@ -23,6 +23,8 @@ interface ICipherRepository {
 
     fun findById(id: String): Cipher?
 
+    fun listByOwnerId(ownerId: String): List<Cipher>
+
     fun updateCipherById(cipher: Cipher)
 
 }
@@ -72,6 +74,15 @@ class CipherRepository(private val client: DynamoDbEnhancedClient) : ICipherRepo
         } else {
             null
         }
+    }
+
+    override fun listByOwnerId(ownerId: String): List<Cipher> {
+        val queryConditional = QueryConditional.sortBeginsWith(
+            Key.builder().partitionValue(ownerId)
+                .sortValue(CIPHER_PREFIX).build()
+        )
+        val iter = table.query(queryConditional)
+        return convert(iter)
     }
 
     override fun updateCipherById(cipher: Cipher) {
@@ -156,6 +167,10 @@ class CipherService(
 
     fun findById(userId: String, cipherId: String): Cipher? {
         return cipherRepository.findByOwnerAndId(userId, cipherId)
+    }
+
+    fun listByOrganization(organizationId: String): List<Cipher> {
+        return cipherRepository.listByOwnerId(organizationId)
     }
 
     private fun createUpdateCipherFromRequest(
