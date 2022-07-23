@@ -16,7 +16,7 @@ class VaultCollection {
 
     companion object {
         const val TABLE_NAME = "resource"
-        val converter: VaullCollectionConverter = Mappers.getMapper(VaullCollectionConverter::class.java)
+        val converter: VaultCollectionConverter = Mappers.getMapper(VaultCollectionConverter::class.java)
     }
 
     @get:DynamoDbPartitionKey
@@ -39,7 +39,7 @@ class VaultCollection {
 }
 
 @Mapper
-interface VaullCollectionConverter {
+interface VaultCollectionConverter {
     @Mappings(
         Mapping(target = "xyObject", constant = "collection"),
     )

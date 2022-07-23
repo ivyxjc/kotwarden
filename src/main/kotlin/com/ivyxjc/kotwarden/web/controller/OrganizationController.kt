@@ -1,6 +1,7 @@
 package com.ivyxjc.kotwarden.web.controller
 
 import com.ivyxjc.kotwarden.model.Organization
+import com.ivyxjc.kotwarden.model.VaultCollection
 import com.ivyxjc.kotwarden.web.kotwardenPrincipal
 import com.ivyxjc.kotwarden.web.model.OrganizationCreateRequestModel
 import com.ivyxjc.kotwarden.web.model.PlanResponseModel
@@ -40,6 +41,15 @@ class OrganizationController(private val organizationService: OrganizationServic
             val list = organizationService.listByUserId(principal.id)
                 .map { Organization.converter.toProfileResponse(it.second) }
             this.respond(HttpStatusCode.OK, list)
+        }
+    }
+
+    suspend fun listCollectionsByOrganization(organizationId: String, ctx: ApplicationCall) {
+        ctx.apply {
+            val list = organizationService.listCollectionByOrganization(organizationId).map {
+                VaultCollection.converter.toResponse(it)
+            }
+            this.respond(list)
         }
     }
 
