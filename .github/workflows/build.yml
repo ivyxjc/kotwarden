@@ -21,10 +21,10 @@ jobs:
             -   uses: aws-actions/setup-sam@v1
 
             -   name: Cache Gradle packages
-                uses: actions/cache@v2
+                uses: actions/cache@v3
                 with:
                     path: ~/.gradle/caches
-                    key: ${{ runner.os }}-${{ hashFiles('**/*.gradle') }}
+                    key: ${{ runner.os }}-${{ hashFiles('*.gradle.kts') }}
 
             -   name: Configure AWS credentials
                 uses: aws-actions/configure-aws-credentials@v1
