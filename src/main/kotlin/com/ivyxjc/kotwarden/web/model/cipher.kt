@@ -2,6 +2,7 @@ package com.ivyxjc.kotwarden.web.model
 
 import com.ivyxjc.kotwarden.model.serializer.OffsetDatetimeNullableSerializer
 import kotlinx.serialization.SerialName
+import kotlinx.serialization.json.JsonObject
 import java.time.OffsetDateTime
 
 // 1: Login; 2: Secure Note; 3: Card; 4: Identity
@@ -134,7 +135,7 @@ data class CipherResponseModel(
     val id: String? = null,
     val organizationId: String? = null,
     val type: CipherType? = null,
-    val data: Map<String, String>? = null,
+    var data: JsonObject? = null,
     val name: String? = null,
     val notes: String? = null,
     var login: CipherLoginModel? = null,

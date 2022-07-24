@@ -67,6 +67,7 @@ class CipherRepository(private val client: DynamoDbEnhancedClient) : ICipherRepo
     }
 
     override fun findById(id: String): Cipher? {
+        // TODO: 2022/7/24 sort value should starts with organization- or user-
         val queryConditional = QueryConditional.keyEqualTo(Key.builder().partitionValue(id).build())
         val iter = skIndex.query(
             QueryEnhancedRequest.builder().queryConditional(queryConditional).build()
@@ -129,6 +130,10 @@ class CipherService(
     private val userCollectionRepository: IUserCollectionRepository,
     private val collectionCipherRepository: ICollectionCipherRepository
 ) {
+
+    fun get(id: String): Cipher? {
+        return cipherRepository.findById(id)
+    }
 
     fun createPlainCipher(principal: KotwardenPrincipal, request: CipherRequestModel): Cipher {
         val cipher = newCipher(request.type, request.name)
@@ -193,10 +198,9 @@ class CipherService(
     fun updateCipher(
         kotwardenPrincipal: KotwardenPrincipal, cipherId: String, request: CipherRequestModel
     ): CipherResponseModel {
-        val cipher = findById(kotwardenPrincipal.id, cipherId) ?: kError("Cipher doesn't exist")
+        val cipher = cipherRepository.findById(cipherId) ?: kError("Cipher doesn't exist")
         return createUpdateCipherFromRequest(cipher, request, kotwardenPrincipal = kotwardenPrincipal)
     }
-
 
     fun importCiphers(
         kotwardenPrincipal: KotwardenPrincipal, importData: ImportCiphersRequestModel

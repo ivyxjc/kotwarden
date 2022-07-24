@@ -5,6 +5,8 @@ import com.ivyxjc.kotwarden.util.decodeFromString
 import com.ivyxjc.kotwarden.util.encodeToString
 import com.ivyxjc.kotwarden.util.isEmpty
 import com.ivyxjc.kotwarden.web.model.*
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
@@ -89,11 +91,11 @@ interface CipherConverter {
         return encodeToString(list)
     }
 
-    fun mapData(data: String?): Map<String, String>? {
-        return mapOf()
+    fun mapData(data: String): JsonObject? {
+        return buildJsonObject { }
     }
 
-    fun mapData(map: Map<String, String>?): String? {
+    fun mapData(map: JsonObject?): String? {
         return EMPTY_STRING
     }
 

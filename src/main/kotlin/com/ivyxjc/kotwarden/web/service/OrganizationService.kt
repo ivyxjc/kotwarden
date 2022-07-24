@@ -9,6 +9,7 @@ import com.ivyxjc.kotwarden.util.ORGANIZATION_PREFIX
 import com.ivyxjc.kotwarden.util.combine
 import com.ivyxjc.kotwarden.util.convert
 import com.ivyxjc.kotwarden.web.kError
+import com.ivyxjc.kotwarden.web.model.CipherCollectionsRequestModel
 import com.ivyxjc.kotwarden.web.model.CollectionRequestModel
 import com.ivyxjc.kotwarden.web.model.KotwardenPrincipal
 import com.ivyxjc.kotwarden.web.model.OrganizationCreateRequestModel
@@ -125,7 +126,8 @@ class OrganizationService(
     private val organizationRepository: IOrganizationRepository,
     private val userCollectionRepository: IUserCollectionRepository,
     private val userOrganizationRepository: IUserOrganizationRepository,
-    private val vaultCollectionRepository: IVaultCollectionRepository
+    private val vaultCollectionRepository: IVaultCollectionRepository,
+    private val collectionCipherRepository: ICollectionCipherRepository
 ) {
     fun createOrganization(principal: KotwardenPrincipal, request: OrganizationCreateRequestModel): Organization {
         val organization = Organization()
@@ -161,6 +163,10 @@ class OrganizationService(
 
     fun createCollection(organizationId: String, request: CollectionRequestModel) {
         vaultCollectionRepository.save(VaultCollection.converter.toModel(organizationId, request))
+    }
+
+    fun updateCipherCollections(cipherId: String, request: CipherCollectionsRequestModel) {
+        collectionCipherRepository.updateCipherCollections(cipherId, request.collectionIds)
     }
 
     fun listByUserId(id: String): List<Pair<UserOrganization, Organization>> {

@@ -40,7 +40,7 @@ object ModuleConfig {
                 instance()
             )
         }
-        bindSingleton { CipherController(instance()) }
+        bindSingleton { CipherController(instance(), instance()) }
 
         bindSingleton { FolderRepository(instance()) }
         bindSingleton { FolderService(instance(), instance()) }
@@ -57,8 +57,8 @@ object ModuleConfig {
         bindSingleton { CollectionService(instance(), instance(), instance()) }
 
         bindSingleton { OrganizationRepository(instance()) }
-        bindSingleton { OrganizationService(instance(), instance(), instance(), instance(), instance()) }
-        bindSingleton { OrganizationController(instance(), instance()) }
+        bindSingleton { OrganizationService(instance(), instance(), instance(), instance(), instance(), instance()) }
+        bindSingleton { OrganizationController(instance(), instance(), instance()) }
     }
 
     private val dynamodbModule = DI.Module("dynamodb") {

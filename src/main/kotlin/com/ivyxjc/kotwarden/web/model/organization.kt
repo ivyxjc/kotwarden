@@ -37,6 +37,10 @@ data class SelectionReadOnlyRequestModel(
     val hidePasswords: Boolean? = null
 )
 
+@kotlinx.serialization.Serializable
+data class CipherCollectionsRequestModel(
+    val collectionIds: List<String>
+)
 
 @kotlinx.serialization.Serializable
 data class OrganizationResponseModel(
