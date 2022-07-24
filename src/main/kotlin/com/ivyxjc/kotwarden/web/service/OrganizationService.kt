@@ -9,6 +9,7 @@ import com.ivyxjc.kotwarden.util.ORGANIZATION_PREFIX
 import com.ivyxjc.kotwarden.util.combine
 import com.ivyxjc.kotwarden.util.convert
 import com.ivyxjc.kotwarden.web.kError
+import com.ivyxjc.kotwarden.web.model.CollectionRequestModel
 import com.ivyxjc.kotwarden.web.model.KotwardenPrincipal
 import com.ivyxjc.kotwarden.web.model.OrganizationCreateRequestModel
 import org.slf4j.LoggerFactory
@@ -156,6 +157,10 @@ class OrganizationService(
         vaultCollection.updatedAt = OffsetDateTime.now()
         vaultCollectionRepository.save(vaultCollection)
         return organization
+    }
+
+    fun createCollection(organizationId: String, request: CollectionRequestModel) {
+        vaultCollectionRepository.save(VaultCollection.converter.toModel(organizationId, request))
     }
 
     fun listByUserId(id: String): List<Pair<UserOrganization, Organization>> {

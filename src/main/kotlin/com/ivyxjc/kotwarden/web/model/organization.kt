@@ -23,6 +23,20 @@ data class OrganizationKeysRequestModel(
     val publicKey: String
 )
 
+@kotlinx.serialization.Serializable
+data class CollectionRequestModel(
+    val name: String,
+    val externalId: String? = null,
+    val groups: List<SelectionReadOnlyRequestModel>? = null
+)
+
+@kotlinx.serialization.Serializable
+data class SelectionReadOnlyRequestModel(
+    val id: String,
+    val readOnly: Boolean? = null,
+    val hidePasswords: Boolean? = null
+)
+
 
 @kotlinx.serialization.Serializable
 data class OrganizationResponseModel(
