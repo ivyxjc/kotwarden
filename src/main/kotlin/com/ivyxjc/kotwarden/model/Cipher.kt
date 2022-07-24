@@ -18,6 +18,7 @@ class Cipher {
     companion object {
         const val TABLE_NAME = "resource"
         const val SK_INDEX = "SK-Index"
+        const val FOLDER_SK_INDEX = "Folder-SK-Index"
         val converter: CipherConverter = Mappers.getMapper(CipherConverter::class.java)
     }
 
@@ -28,6 +29,7 @@ class Cipher {
     @get:DynamoDbSortKey
     @get:DynamoDbAttribute("SK")
     @get:DynamoDbSecondaryPartitionKey(indexNames = [SK_INDEX])
+    @get:DynamoDbSecondarySortKey(indexNames = [FOLDER_SK_INDEX])
     lateinit var id: String
 
     @get:DynamoDbAttribute("CreatedAt")
@@ -66,6 +68,7 @@ class Cipher {
 
     // cipher folder
     @get:DynamoDbAttribute("FolderId")
+    @get:DynamoDbSecondaryPartitionKey(indexNames = [FOLDER_SK_INDEX])
     var folderId: String? = null
 
     @get:DynamoDbAttribute("Favorite")

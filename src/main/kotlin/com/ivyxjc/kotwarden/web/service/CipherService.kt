@@ -28,12 +28,16 @@ interface ICipherRepository {
 
     fun updateCipherById(cipher: Cipher)
 
+    fun updateFolderCiphersToNull(folderId: String)
+
+    fun cleanCipherFolderId(cipher: Cipher)
 }
 
 class CipherRepository(private val client: DynamoDbEnhancedClient) : ICipherRepository {
     private val schema = TableSchema.fromBean(Cipher::class.java)
     private val table = client.table(Cipher.TABLE_NAME, schema)
     private val skIndex = table.index(Cipher.SK_INDEX)
+    private val folderIndex = table.index(Cipher.FOLDER_SK_INDEX)
 
     override fun save(cipher: Cipher) {
         return table.putItem(cipher)
@@ -94,6 +98,25 @@ class CipherRepository(private val client: DynamoDbEnhancedClient) : ICipherRepo
         val transaction = TransactWriteItemsEnhancedRequest.builder().addDeleteItem(table, deleteRequest)
             .addPutItem(table, insertRequest).build();
         client.transactWriteItems(transaction)
+    }
+
+    override fun updateFolderCiphersToNull(folderId: String) {
+        val queryConditional = QueryConditional.sortBeginsWith(
+            Key.builder().partitionValue(folderId)
+                .sortValue(CIPHER_PREFIX).build()
+        )
+        val iter = folderIndex.query(queryConditional)
+        val list = convert(iter)
+        list.forEach {
+            cleanCipherFolderId(it)
+        }
+    }
+
+    override fun cleanCipherFolderId(cipher: Cipher) {
+        if (cipher.folderId != null) {
+            cipher.folderId = null
+            save(cipher)
+        }
     }
 }
 
