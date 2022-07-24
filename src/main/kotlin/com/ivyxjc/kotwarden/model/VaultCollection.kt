@@ -1,12 +1,15 @@
 package com.ivyxjc.kotwarden.model
 
+import com.ivyxjc.kotwarden.util.COLLECTION_PREFIX
 import com.ivyxjc.kotwarden.web.model.CollectionDetailsResponseModel
+import com.ivyxjc.kotwarden.web.model.CollectionRequestModel
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
 import org.mapstruct.factory.Mappers
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.*
 import java.time.OffsetDateTime
+import java.util.*
 
 @DynamoDbBean
 class VaultCollection {
@@ -43,6 +46,16 @@ interface VaultCollectionConverter {
         Mapping(target = "xyObject", constant = "collection"),
     )
     fun toResponse(vaultCollection: VaultCollection): CollectionDetailsResponseModel
+
+    fun toModel(organizationId: String, request: CollectionRequestModel): VaultCollection {
+        val collection = VaultCollection()
+        collection.id = COLLECTION_PREFIX + UUID.randomUUID().toString()
+        collection.organizationId = organizationId
+        collection.name = request.name
+        collection.createdAt = OffsetDateTime.now()
+        collection.updatedAt = OffsetDateTime.now()
+        return collection
+    }
 
 
 }

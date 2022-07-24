@@ -129,6 +129,10 @@ fun Routing.organization(organizationController: OrganizationController) {
                 val id = this.context.parameters.getOrFail<String>("id")
                 organizationController.listCollectionsByOrganization(id, this.context)
             }
+            post("{id}/collections") {
+                val id = this.context.parameters.getOrFail<String>("id")
+                organizationController.createCollection(id, this.context)
+            }
             get("{id}/users") {
                 val id = this.context.parameters.getOrFail<String>("id")
                 organizationController.listUsers(id, this.context)

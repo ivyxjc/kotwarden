@@ -86,6 +86,14 @@ class OrganizationController(
         }
     }
 
+    suspend fun createCollection(organizationId: String, ctx: ApplicationCall) {
+        ctx.apply {
+            val req = ctx.receive<CollectionRequestModel>()
+            organizationService.createCollection(organizationId, req)
+            this.respond(HttpStatusCode.OK, "")
+        }
+    }
+
     suspend fun listUsers(organizationId: String, ctx: ApplicationCall) {
         ctx.apply {
             val list = organizationService.listUserOrganizationsByOrganization(organizationId)
