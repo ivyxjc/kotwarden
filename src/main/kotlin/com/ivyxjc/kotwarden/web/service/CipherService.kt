@@ -1,6 +1,7 @@
 package com.ivyxjc.kotwarden.web.service
 
 import com.ivyxjc.kotwarden.model.Cipher
+import com.ivyxjc.kotwarden.model.CollectionCipher
 import com.ivyxjc.kotwarden.model.Folder
 import com.ivyxjc.kotwarden.util.*
 import com.ivyxjc.kotwarden.web.kError
@@ -83,8 +84,7 @@ class CipherRepository(private val client: DynamoDbEnhancedClient) : ICipherRepo
 
     override fun listByOwnerId(ownerId: String): List<Cipher> {
         val queryConditional = QueryConditional.sortBeginsWith(
-            Key.builder().partitionValue(ownerId)
-                .sortValue(CIPHER_PREFIX).build()
+            Key.builder().partitionValue(ownerId).sortValue(CIPHER_PREFIX).build()
         )
         val iter = table.query(queryConditional)
         return convert(iter)
@@ -102,8 +102,7 @@ class CipherRepository(private val client: DynamoDbEnhancedClient) : ICipherRepo
 
     override fun updateFolderCiphersToNull(folderId: String) {
         val queryConditional = QueryConditional.sortBeginsWith(
-            Key.builder().partitionValue(folderId)
-                .sortValue(CIPHER_PREFIX).build()
+            Key.builder().partitionValue(folderId).sortValue(CIPHER_PREFIX).build()
         )
         val iter = folderIndex.query(queryConditional)
         val list = convert(iter)
@@ -123,9 +122,12 @@ class CipherRepository(private val client: DynamoDbEnhancedClient) : ICipherRepo
 
 class CipherService(
     private val cipherRepository: ICipherRepository,
+    private val vaultCollectionRepository: IVaultCollectionRepository,
     private val folderService: FolderService,
     private val organizationService: OrganizationService,
-    private val userOrganizationService: UserOrganizationService
+    private val userOrganizationService: UserOrganizationService,
+    private val userCollectionRepository: IUserCollectionRepository,
+    private val collectionCipherRepository: ICollectionCipherRepository
 ) {
 
     fun createPlainCipher(principal: KotwardenPrincipal, request: CipherRequestModel): Cipher {
@@ -142,16 +144,35 @@ class CipherService(
 
     fun createShareCipher(principal: KotwardenPrincipal, request: CipherCreateRequestModel): CipherResponseModel {
         val cipher = newCipher(request.cipher.type, request.cipher.name)
-        return createUpdateCipherFromRequest(cipher, request.cipher, kotwardenPrincipal = principal)
+        val cipherResponse = createUpdateCipherFromRequest(cipher, request.cipher, kotwardenPrincipal = principal)
+        if (isNotEmpty(request.cipher.organizationId) && request.collectionIds != null) {
+            for (collectionId in request.collectionIds) {
+                val collectionCipher = CollectionCipher()
+                collectionCipher.cipherId = cipher.id
+                collectionCipher.collectionId = collectionId
+                collectionCipher.createdAt = OffsetDateTime.now()
+                collectionCipher.updatedAt = OffsetDateTime.now()
+                collectionCipherRepository.save(collectionCipher)
+            }
+        }
+        return cipherResponse
     }
 
-    fun shareCipherById(
+    fun shareCipher(
         principal: KotwardenPrincipal, cipherId: String, request: CipherCreateRequestModel
     ): CipherResponseModel {
         val cipher = cipherRepository.findById(cipherId) ?: kError("Cipher does not exist")
         // TODO: 2022/7/22 check whether the user can access cipher
-        if (isNotEmpty(request.cipher.organizationId)) {
-            // TODO: 2022/7/22
+        // TODO: 2022/7/24 transaction?
+        if (isNotEmpty(request.cipher.organizationId) && request.collectionIds != null) {
+            for (collectionId in request.collectionIds) {
+                val collectionCipher = CollectionCipher()
+                collectionCipher.cipherId = cipherId
+                collectionCipher.collectionId = collectionId
+                collectionCipher.createdAt = OffsetDateTime.now()
+                collectionCipher.updatedAt = OffsetDateTime.now()
+                collectionCipherRepository.save(collectionCipher)
+            }
         }
         return createUpdateCipherFromRequest(cipher, request.cipher, true, principal)
     }
@@ -197,9 +218,29 @@ class CipherService(
 
     }
 
-    fun findByUser(userId: String): List<Cipher> {
-        return cipherRepository.findByUser(userId)
+    fun listAllByUser(userId: String): List<Cipher> {
+        // three parts
+        // 1. user_organization access_all:true -> all ciphers in organization
+        // 2. user_collection -> all ciphers in collection
+        // 3. user's ciphers
+        val res = mutableListOf<Cipher>()
+        val ciphers = cipherRepository.findByUser(userId)
+        res.addAll(ciphers)
+        val userOrganizations = userOrganizationService.listByUser(userId)
+        userOrganizations.filter { it.accessAll }.forEach {
+            res.addAll(listByOrganization(it.organizationId))
+        }
+
+        val userCollections = userCollectionRepository.listByUserId(userId)
+        val collectionCiphers = collectionCipherRepository.listByCollectionIds(userCollections.map { it.collectionId })
+        for (collectionCipher in collectionCiphers) {
+            cipherRepository.findById(collectionCipher.cipherId)?.let {
+                res.add(it)
+            }
+        }
+        return res
     }
+
 
     fun findById(userId: String, cipherId: String): Cipher? {
         return cipherRepository.findByOwnerAndId(userId, cipherId)

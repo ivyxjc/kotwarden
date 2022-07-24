@@ -29,7 +29,17 @@ object ModuleConfig {
         bindSingleton { SyncController(instance()) }
 
         bindSingleton { CipherRepository(instance()) }
-        bindSingleton { CipherService(instance(), instance(), instance(), instance()) }
+        bindSingleton {
+            CipherService(
+                instance(),
+                instance(),
+                instance(),
+                instance(),
+                instance(),
+                instance(),
+                instance()
+            )
+        }
         bindSingleton { CipherController(instance()) }
 
         bindSingleton { FolderRepository(instance()) }
