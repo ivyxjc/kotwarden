@@ -1,5 +1,6 @@
 package com.ivyxjc.kotwarden.web.controller
 
+import com.ivyxjc.kotwarden.model.Folder
 import com.ivyxjc.kotwarden.web.kotwardenPrincipal
 import com.ivyxjc.kotwarden.web.model.FolderRequestModel
 import com.ivyxjc.kotwarden.web.service.FolderService
@@ -13,7 +14,10 @@ class FolderController(val folderService: FolderService) {
         ctx.apply {
             val principal = kotwardenPrincipal(this)
             val request = this.receive<FolderRequestModel>()
-            ctx.respond(HttpStatusCode.OK, folderService.createFolder(principal, request))
+            ctx.respond(
+                HttpStatusCode.OK,
+                Folder.converter.toFolderResponse(folderService.createFolder(principal, request))
+            )
         }
     }
 
@@ -39,7 +43,7 @@ class FolderController(val folderService: FolderService) {
         ctx.apply {
             val principal = kotwardenPrincipal(this)
             val request = this.receive<FolderRequestModel>()
-            this.respond(folderService.createFolder(principal, request))
+            this.respond(Folder.converter.toFolderResponse(folderService.createFolder(principal, request)))
         }
     }
 }

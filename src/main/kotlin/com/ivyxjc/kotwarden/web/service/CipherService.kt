@@ -1,6 +1,7 @@
 package com.ivyxjc.kotwarden.web.service
 
 import com.ivyxjc.kotwarden.model.Cipher
+import com.ivyxjc.kotwarden.model.Folder
 import com.ivyxjc.kotwarden.util.*
 import com.ivyxjc.kotwarden.web.kError
 import com.ivyxjc.kotwarden.web.model.*
@@ -156,9 +157,21 @@ class CipherService(
     fun importCiphers(
         kotwardenPrincipal: KotwardenPrincipal, importData: ImportCiphersRequestModel
     ) {
-        importData.ciphers?.forEach {
+        // TODO: 2022/7/18 how to rollback? if failed to import ciphers
+        val folderList = mutableListOf<Folder>()
+        importData.folders?.forEach {
+            val folder = folderService.createFolder(kotwardenPrincipal, it)
+            folderList.add(folder)
+        }
+        val map = mutableMapOf<Int, String>()
+        importData.folderRelationships?.forEach {
+            map[it.key!!] = folderList[it.value!!].id
+        }
+        importData.ciphers?.forEachIndexed { idx, it ->
+            it.folderId = map[idx]
             createUpdateCipherFromRequest(newCipher(it.type, it.name), it, kotwardenPrincipal = kotwardenPrincipal)
         }
+
     }
 
     fun findByUser(userId: String): List<Cipher> {

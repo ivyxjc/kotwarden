@@ -68,7 +68,7 @@ class FolderRepository(private val client: DynamoDbEnhancedClient) : IFolderRepo
 }
 
 class FolderService(private val folderRepository: IFolderRepository) {
-    fun createFolder(principal: KotwardenPrincipal, request: FolderRequestModel): FolderResponseModel {
+    fun createFolder(principal: KotwardenPrincipal, request: FolderRequestModel): Folder {
         val folder = Folder()
         folder.name = request.name
         folder.id = FOLDER_PREFIX + UUID.randomUUID().toString()
@@ -77,7 +77,7 @@ class FolderService(private val folderRepository: IFolderRepository) {
         folder.updatedAt = OffsetDateTime.now()
         folder.userId = principal.id
         folderRepository.save(folder)
-        return Folder.converter.toFolderResponse(folder)
+        return folder
     }
 
     fun deleteFolder(principal: KotwardenPrincipal, id: String) {
