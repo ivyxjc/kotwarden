@@ -41,6 +41,14 @@ class CipherController(private val cipherService: CipherService) {
         }
     }
 
+    suspend fun shareCipher(id: String, ctx: ApplicationCall) {
+        ctx.apply {
+            val principal = kotwardenPrincipal(this)
+            val request = this.receive<CipherCreateRequestModel>()
+            this.respond(cipherService.shareCipher(principal, id, request))
+        }
+    }
+
     suspend fun deleteCipher(ctx: ApplicationCall, id: String) {
         ctx.apply {
             val principal = kotwardenPrincipal(this)

@@ -1,7 +1,6 @@
 package com.ivyxjc.kotwarden.web.service
 
 import com.ivyxjc.kotwarden.model.CollectionCipher
-import com.ivyxjc.kotwarden.model.UserCollection
 import com.ivyxjc.kotwarden.model.VaultCollection
 import com.ivyxjc.kotwarden.util.COLLECTION_PREFIX
 import com.ivyxjc.kotwarden.util.convert
@@ -24,6 +23,11 @@ interface ICollectionCipherRepository {
     fun save(collectionCipher: CollectionCipher)
 
     fun listByCipherId(cipherId: String): List<CollectionCipher>
+
+    fun listByCollectionId(collectionId: String): List<CollectionCipher>
+
+    fun listByCollectionIds(collectionIds: List<String>): List<CollectionCipher>
+
 }
 
 class VaultCollectionRepository(private val client: DynamoDbEnhancedClient) : IVaultCollectionRepository {
@@ -81,6 +85,21 @@ class CollectionCipherRepository(private val client: DynamoDbEnhancedClient) : I
         val iter = index.query(queryConditional)
         return convert(iter)
     }
+
+    override fun listByCollectionId(collectionId: String): List<CollectionCipher> {
+        val queryConditional = QueryConditional
+            .keyEqualTo(Key.builder().partitionValue(collectionId).build())
+        val iter = table.query(queryConditional)
+        return convert(iter)
+    }
+
+    override fun listByCollectionIds(collectionIds: List<String>): List<CollectionCipher> {
+        val res = mutableListOf<CollectionCipher>()
+        collectionIds.forEach {
+            res.addAll(listByCollectionId(it))
+        }
+        return res
+    }
 }
 
 class CollectionService(
@@ -91,9 +110,5 @@ class CollectionService(
 
     fun listCollectionIdsByCipher(cipherId: String): List<CollectionCipher> {
         return collectionCipherRepository.listByCipherId(cipherId)
-    }
-
-    fun listUserCollectionCollectionsByUser(userId: String): List<UserCollection> {
-        return userCollectionRepository.listByUserId(userId)
     }
 }

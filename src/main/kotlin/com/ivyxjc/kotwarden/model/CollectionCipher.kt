@@ -1,6 +1,7 @@
 package com.ivyxjc.kotwarden.model
 
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.*
+import java.time.OffsetDateTime
 
 @DynamoDbBean
 class CollectionCipher {
@@ -18,5 +19,12 @@ class CollectionCipher {
     @get:DynamoDbAttribute("CipherId")
     @get:DynamoDbSecondaryPartitionKey(indexNames = [REVERSE_INDEX])
     lateinit var cipherId: String
+
+    @get:DynamoDbAttribute("CreatedAt")
+    lateinit var createdAt: OffsetDateTime
+
+    @get:DynamoDbAttribute("UpdatedAt")
+    lateinit var updatedAt: OffsetDateTime
+
 
 }

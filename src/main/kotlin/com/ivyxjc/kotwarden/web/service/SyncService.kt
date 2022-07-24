@@ -34,7 +34,7 @@ class SyncService(
                 resp.hasPublicAndPrivateKeys = it.second.publicKey != null && it.second.encryptedPrivateKey != null
                 return@map resp
             }
-        val ciphers = cipherService.findByUser(principal.id)
+        val ciphers = cipherService.listAllByUser(principal.id)
         val folders = folderService.listByUser(principal.id)
         resp.ciphers.addAll(ciphers.map {
             val r = Cipher.converter.toCipherDetailResponse(it)
