@@ -8,8 +8,8 @@ import com.ivyxjc.kotwarden.web.kError
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient
 import software.amazon.awssdk.enhanced.dynamodb.Key
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema
-import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional
-import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest
+import software.amazon.awssdk.enhanced.dynamodb.model.*
+import java.time.OffsetDateTime
 
 
 interface IVaultCollectionRepository {
@@ -21,6 +21,8 @@ interface IVaultCollectionRepository {
 
 interface ICollectionCipherRepository {
     fun save(collectionCipher: CollectionCipher)
+
+    fun updateCipherCollections(cipherId: String, collectionIds: List<String>)
 
     fun listByCipherId(cipherId: String): List<CollectionCipher>
 
@@ -77,6 +79,37 @@ class CollectionCipherRepository(private val client: DynamoDbEnhancedClient) : I
 
     override fun save(collectionCipher: CollectionCipher) {
         table.putItem(collectionCipher)
+    }
+
+    override fun updateCipherCollections(cipherId: String, collectionIds: List<String>) {
+        // transaction size limit ??
+        val list = listByCipherId(cipherId)
+        if (list.isEmpty() && collectionIds.isEmpty()) {
+            return
+        }
+        val intersectionList = list.map { it.collectionId }.intersect(collectionIds.toSet())
+        val transactionBuilder = TransactWriteItemsEnhancedRequest.builder()
+        if (intersectionList.size == list.size && intersectionList.size == collectionIds.size) {
+            return
+        }
+        list.map { it.collectionId }.minus(intersectionList).forEach {
+            transactionBuilder.addDeleteItem(
+                table, TransactDeleteItemEnhancedRequest.builder()
+                    .key(Key.builder().partitionValue(it).sortValue(cipherId).build()).build()
+            )
+        }
+        collectionIds.minus(intersectionList).forEach {
+            val item = CollectionCipher()
+            item.cipherId = cipherId
+            item.collectionId = it
+            item.createdAt = OffsetDateTime.now()
+            item.updatedAt = OffsetDateTime.now()
+            transactionBuilder.addPutItem(
+                table, TransactPutItemEnhancedRequest.builder(CollectionCipher::class.java)
+                    .item(item).build()
+            );
+        }
+        client.transactWriteItems(transactionBuilder.build())
     }
 
     override fun listByCipherId(cipherId: String): List<CollectionCipher> {

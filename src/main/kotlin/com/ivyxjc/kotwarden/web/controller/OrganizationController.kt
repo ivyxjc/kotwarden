@@ -6,6 +6,7 @@ import com.ivyxjc.kotwarden.model.VaultCollection
 import com.ivyxjc.kotwarden.web.kotwardenPrincipal
 import com.ivyxjc.kotwarden.web.model.*
 import com.ivyxjc.kotwarden.web.service.CipherService
+import com.ivyxjc.kotwarden.web.service.CollectionService
 import com.ivyxjc.kotwarden.web.service.OrganizationService
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -15,7 +16,9 @@ import kotlinx.serialization.json.*
 
 
 class OrganizationController(
-    private val organizationService: OrganizationService, private val cipherService: CipherService
+    private val organizationService: OrganizationService,
+    private val cipherService: CipherService,
+    private val collectionService: CollectionService
 ) {
     suspend fun getPlans(ctx: ApplicationCall) {
         ctx.apply {
@@ -38,6 +41,14 @@ class OrganizationController(
         }
     }
 
+    suspend fun updateCipherCollections(cipherId: String, ctx: ApplicationCall) {
+        ctx.apply {
+            val request = ctx.receive<CipherCollectionsRequestModel>()
+            organizationService.updateCipherCollections(cipherId, request)
+            this.respond(HttpStatusCode.OK)
+        }
+    }
+
     suspend fun listOrganizations(ctx: ApplicationCall) {
         ctx.apply {
             val principal = kotwardenPrincipal(this)
@@ -50,7 +61,11 @@ class OrganizationController(
     suspend fun listOrganizationDetail(organizationId: String, ctx: ApplicationCall) {
         ctx.apply {
             val ciphers = cipherService.listByOrganization(organizationId)
-                .map { it -> Cipher.converter.toCipherDetailResponse(it) }
+                .map {
+                    val resp = Cipher.converter.toCipherDetailResponse(it)
+                    resp.collectionIds = collectionService.listCollectionIdsByCipher(it.id).map { t -> t.collectionId }
+                    return@map resp
+                }
             val res = CipherDetailsResponseModelListResponseModel()
             res.xyObject = "list"
             res.data = ciphers

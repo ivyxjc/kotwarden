@@ -57,6 +57,9 @@ fun Routing.cipher(cipherController: CipherController, organizationController: O
                 // `organizationId` is null.
                 cipherController.createCipherRequest(this.context)
             }
+            post("/admin") {
+                cipherController.createCipherRequest(this.context)
+            }
             post("{id}/share") {
                 val id = this.context.parameters.getOrFail<String>("id")
                 cipherController.shareCipher(id, this.context)
@@ -64,6 +67,14 @@ fun Routing.cipher(cipherController: CipherController, organizationController: O
             put("{id}/share") {
                 val id = this.context.parameters.getOrFail<String>("id")
                 cipherController.shareCipher(id, this.context)
+            }
+            get("{id}/admin") {
+                val id = this.context.parameters.getOrFail<String>("id")
+                cipherController.getCipher(id, this.context)
+            }
+            put("{id}/collections-admin") {
+                val id = this.context.parameters.getOrFail<String>("id")
+                organizationController.updateCipherCollections(id, this.context)
             }
             put("{id}") {
                 val id = this.context.parameters.getOrFail<String>("id")
