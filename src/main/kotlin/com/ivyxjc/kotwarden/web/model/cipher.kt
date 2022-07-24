@@ -14,7 +14,7 @@ data class CipherRequestModel(
     val name: String,
     val type: CipherType,
     val organizationId: String? = null,
-    val folderId: String? = null,
+    var folderId: String? = null,
     val favorite: Boolean? = null,
     val reprompt: Int? = null,
     val notes: String? = null,
@@ -38,7 +38,13 @@ data class CipherCreateRequestModel(
 data class ImportCiphersRequestModel(
     val folders: List<FolderRequestModel>? = null,
     val ciphers: List<CipherRequestModel>? = null,
-    val folderRelationships: List<Pair<Int, Int>>? = null
+    val folderRelationships: List<KeyValuePair>? = null
+)
+
+@kotlinx.serialization.Serializable
+data class KeyValuePair(
+    val key: Int? = null,
+    val value: Int? = null
 )
 
 
