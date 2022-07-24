@@ -33,7 +33,7 @@ object ModuleConfig {
         bindSingleton { CipherController(instance()) }
 
         bindSingleton { FolderRepository(instance()) }
-        bindSingleton { FolderService(instance()) }
+        bindSingleton { FolderService(instance(), instance()) }
         bindSingleton { FolderController(instance()) }
 
 

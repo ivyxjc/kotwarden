@@ -67,7 +67,10 @@ class FolderRepository(private val client: DynamoDbEnhancedClient) : IFolderRepo
     }
 }
 
-class FolderService(private val folderRepository: IFolderRepository) {
+class FolderService(
+    private val folderRepository: IFolderRepository,
+    private val cipherRepository: ICipherRepository
+) {
     fun createFolder(principal: KotwardenPrincipal, request: FolderRequestModel): Folder {
         val folder = Folder()
         folder.name = request.name
@@ -81,6 +84,7 @@ class FolderService(private val folderRepository: IFolderRepository) {
     }
 
     fun deleteFolder(principal: KotwardenPrincipal, id: String) {
+        cipherRepository.updateFolderCiphersToNull(id)
         folderRepository.deleteById(id, principal.id) ?: error("Fail to find the folder")
     }
 
