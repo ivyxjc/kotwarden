@@ -23,6 +23,15 @@ fun Routing.account(accountController: AccountController) {
         post("prelogin") {
             accountController.preLogin(this.context)
         }
+
+    }
+    authenticate("auth-jwt") {
+        route("api") {
+            get("accounts/profile") {
+                accountController.profile(this.context)
+            }
+        }
+
     }
 }
 
