@@ -6,6 +6,9 @@ import com.ivyxjc.kotwarden.model.UserCollection
 import com.ivyxjc.kotwarden.util.USER_PREFIX
 import com.ivyxjc.kotwarden.util.convert
 import com.ivyxjc.kotwarden.util.hashPassword
+import com.ivyxjc.kotwarden.util.verifyPassword
+import com.ivyxjc.kotwarden.web.kError
+import com.ivyxjc.kotwarden.web.model.KdfRequestModel
 import com.ivyxjc.kotwarden.web.model.PreLoginRequest
 import com.ivyxjc.kotwarden.web.model.PreLoginResponse
 import com.ivyxjc.kotwarden.web.model.RegisterRequest
@@ -75,16 +78,9 @@ class UserCollectionRepository(private val client: DynamoDbEnhancedClient) : IUs
 
 }
 
-interface IAccountService {
-    fun register(registerReq: RegisterRequest)
-    fun preLogin(preLoginRequest: PreLoginRequest): PreLoginResponse
+class AccountService(private val userRepository: UserRepository) {
 
-    fun findById(id: String): User?
-}
-
-class AccountService(private val userRepository: UserRepository) : IAccountService {
-
-    override fun preLogin(preLoginRequest: PreLoginRequest): PreLoginResponse {
+    fun preLogin(preLoginRequest: PreLoginRequest): PreLoginResponse {
         val user = userRepository.findByEmail(preLoginRequest.email)
         val (kdfType, kdfIterations) = if (user == null) {
             Pair(Config.kdf, Config.kdfIterations)
@@ -94,7 +90,7 @@ class AccountService(private val userRepository: UserRepository) : IAccountServi
         return PreLoginResponse(kdfType, kdfIterations)
     }
 
-    override fun register(registerReq: RegisterRequest) {
+    fun register(registerReq: RegisterRequest) {
         val dbUser = userRepository.findByEmail(registerReq.email)
         val user: User
         if (dbUser != null) {
@@ -113,8 +109,24 @@ class AccountService(private val userRepository: UserRepository) : IAccountServi
         }
     }
 
-    override fun findById(id: String): User? {
+    fun findById(id: String): User? {
         return userRepository.findById(id)
+    }
+
+    /**
+     * make sure the userId is from principal
+     */
+    fun updateKdf(userId: String, request: KdfRequestModel) {
+        val user = userRepository.findById(userId) ?: kError("User does not exists")
+        if (!verifyPassword(request.masterPasswordHash!!, user.salt, user.masterPasswordHash!!, user.kdfIterations)) {
+            kError("Invalid Password")
+        } else {
+            user.kdf = request.kdf
+            user.kdfIterations = request.kdfIterations
+            user.masterPasswordHash = hashPassword(request.newMasterPasswordHash, user.salt, request.kdfIterations)
+            user.key = request.key
+            userRepository.save(user)
+        }
     }
 
     fun userExists(email: String): User? {

@@ -26,9 +26,12 @@ fun Routing.account(accountController: AccountController) {
 
     }
     authenticate("auth-jwt") {
-        route("api") {
-            get("accounts/profile") {
+        route("api/accounts") {
+            get("profile") {
                 accountController.profile(this.context)
+            }
+            post("kdf") {
+                accountController.updateKdf(this.context)
             }
         }
     }

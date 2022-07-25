@@ -4,6 +4,8 @@ import com.ivyxjc.kotwarden.model.serializer.UUIDSerializer
 import kotlinx.serialization.json.JsonElement
 import java.util.*
 
+typealias KdfType = Int
+
 //region register
 @kotlinx.serialization.Serializable
 data class RegisterRequest(
@@ -39,3 +41,14 @@ data class PreLoginResponse(
     val kdfIterations: Int? = null
 )
 //endregion
+
+@kotlinx.serialization.Serializable
+data class KdfRequestModel(
+    val newMasterPasswordHash: String,
+    val key: String,
+    val kdf: KdfType,
+    val kdfIterations: Int,
+    val masterPasswordHash: String? = null,
+    val otp: String? = null,
+    val secret: String? = null
+)

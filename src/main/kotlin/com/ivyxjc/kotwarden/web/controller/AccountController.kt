@@ -2,6 +2,7 @@ package com.ivyxjc.kotwarden.web.controller
 
 import com.ivyxjc.kotwarden.model.User
 import com.ivyxjc.kotwarden.web.kotwardenPrincipal
+import com.ivyxjc.kotwarden.web.model.KdfRequestModel
 import com.ivyxjc.kotwarden.web.model.PreLoginRequest
 import com.ivyxjc.kotwarden.web.model.RegisterRequest
 import com.ivyxjc.kotwarden.web.service.AccountService
@@ -37,5 +38,12 @@ class AccountController(private val accountService: AccountService) {
         }
     }
 
-
+    suspend fun updateKdf(ctx: ApplicationCall) {
+        ctx.apply {
+            val principal = kotwardenPrincipal(this)
+            val request = ctx.receive<KdfRequestModel>()
+            accountService.updateKdf(principal.id, request)
+            ctx.respond(HttpStatusCode.OK)
+        }
+    }
 }
