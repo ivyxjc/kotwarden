@@ -36,4 +36,6 @@ class AccountController(private val accountService: AccountService) {
             ctx.respond(HttpStatusCode.OK, User.converter.toProfileResponse(user!!))
         }
     }
+
+
 }

@@ -30,6 +30,7 @@ fun Application.main() {
     val cipherController by ModuleConfig.kodein.instance<CipherController>()
     val folderController by ModuleConfig.kodein.instance<FolderController>()
     val organizationController by ModuleConfig.kodein.instance<OrganizationController>()
+    val twoFactorController by ModuleConfig.kodein.instance<TwoFactorController>()
     install(CORS) {
         allowHost(Config.corsHost)
         allowMethod(HttpMethod.Put)
@@ -58,6 +59,7 @@ fun Application.main() {
         cipher(cipherController, organizationController)
         folder(folderController)
         organization(organizationController)
+        twofa(twoFactorController)
     }
     install(ContentNegotiation) {
         json(Json {

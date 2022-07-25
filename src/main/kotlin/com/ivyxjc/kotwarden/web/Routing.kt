@@ -31,7 +31,16 @@ fun Routing.account(accountController: AccountController) {
                 accountController.profile(this.context)
             }
         }
+    }
+}
 
+fun Routing.twofa(twoFactorController: TwoFactorController) {
+    authenticate("auth-jwt") {
+        route("api") {
+            get("/two-factor") {
+                twoFactorController.twoFactor(this.context)
+            }
+        }
     }
 }
 

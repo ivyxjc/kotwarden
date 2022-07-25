@@ -60,6 +60,10 @@ object ModuleConfig {
         bindSingleton { OrganizationRepository(instance()) }
         bindSingleton { OrganizationService(instance(), instance(), instance(), instance(), instance(), instance()) }
         bindSingleton { OrganizationController(instance(), instance(), instance()) }
+
+        bindSingleton { TwoFactorRepository(instance()) }
+        bindSingleton { TwoFactorService(instance()) }
+        bindSingleton { TwoFactorController(instance()) }
     }
 
     private val dynamodbModule = DI.Module("dynamodb") {
