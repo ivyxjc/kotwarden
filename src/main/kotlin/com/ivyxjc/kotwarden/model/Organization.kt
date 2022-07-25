@@ -61,6 +61,8 @@ class Organization {
 interface OrganizationConverter {
     @Mappings(
         Mapping(target = "xyObject", constant = "organization"),
+        Mapping(target = "planType", constant = "5"),
+        Mapping(target = "useTotp", constant = "true")
     )
     fun toResponse(organization: Organization): OrganizationResponseModel
 
@@ -68,6 +70,8 @@ interface OrganizationConverter {
         Mapping(target = "xyObject", constant = "profileOrganization"),
         Mapping(target = "seats", constant = "100"),
         Mapping(target = "maxCollections", constant = "100"),
+        Mapping(target = "useTotp", constant = "true"),
+        Mapping(target = "usersGetPremium", constant = "true")
     )
     fun toProfileResponse(organization: Organization): ProfileOrganizationResponseModel
 
