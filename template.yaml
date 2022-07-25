@@ -30,3 +30,9 @@ Resources:
                         Method: ANY
                         Path: /{proxy+}
                         TimeoutInMillis: 5000
+                ScheduleEvent:
+                    Type: Schedule
+                    Properties:
+                        Name: Kotwarden-Schedule
+                        Enabled: true
+                        Schedule: "rate(5 minutes)"
