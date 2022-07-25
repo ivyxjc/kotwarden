@@ -16,6 +16,17 @@ data class OrganizationCreateRequestModel(
     val collectionName: String
 )
 
+@kotlinx.serialization.Serializable
+data class OrganizationUpdateRequestModel(
+    val name: String? = null,
+    val billingEmail: String? = null,
+    val key: String? = null,
+    val businessName: String? = null,
+    val planType: PlanType? = null,
+    val keys: OrganizationKeysRequestModel? = null,
+    val collectionName: String? = null
+)
+
 
 @kotlinx.serialization.Serializable
 data class OrganizationKeysRequestModel(
@@ -72,7 +83,7 @@ data class OrganizationResponseModel(
     val use2fa: Boolean? = null,
     val useApi: Boolean? = null,
     val useResetPassword: Boolean? = null,
-    val usersGetPremium: Boolean? = null,
+    var usersGetPremium: Boolean? = null,
     val selfHost: Boolean? = null,
     val hasPublicAndPrivateKeys: Boolean? = null
 )

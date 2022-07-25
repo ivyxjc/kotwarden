@@ -9,10 +9,7 @@ import com.ivyxjc.kotwarden.util.ORGANIZATION_PREFIX
 import com.ivyxjc.kotwarden.util.combine
 import com.ivyxjc.kotwarden.util.convert
 import com.ivyxjc.kotwarden.web.kError
-import com.ivyxjc.kotwarden.web.model.CipherCollectionsRequestModel
-import com.ivyxjc.kotwarden.web.model.CollectionRequestModel
-import com.ivyxjc.kotwarden.web.model.KotwardenPrincipal
-import com.ivyxjc.kotwarden.web.model.OrganizationCreateRequestModel
+import com.ivyxjc.kotwarden.web.model.*
 import org.slf4j.LoggerFactory
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient
 import software.amazon.awssdk.enhanced.dynamodb.Expression
@@ -25,6 +22,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.ReadBatch
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 import java.time.OffsetDateTime
 import java.util.*
+import kotlin.collections.set
 
 interface IUserOrganizationRepository {
     fun save(userOrganization: UserOrganization)
@@ -37,6 +35,8 @@ interface IOrganizationRepository {
     fun save(organization: Organization)
 
     fun listByOrganizationIds(organizationIds: List<String>): List<Organization>
+
+    fun findById(id: String): Organization
 }
 
 class UserOrganizationRepository(private val client: DynamoDbEnhancedClient) : IUserOrganizationRepository {
@@ -66,8 +66,7 @@ class UserOrganizationRepository(private val client: DynamoDbEnhancedClient) : I
     override fun getByOrganizationAndUser(organizationId: String, userId: String): UserOrganization? {
         val queryConditional =
             QueryConditional.keyEqualTo(Key.builder().partitionValue(userId).sortValue(organizationId).build())
-        val filter = Expression.builder().expression("#status = :status")
-            .expressionNames(mapOf("#status" to "Status"))
+        val filter = Expression.builder().expression("#status = :status").expressionNames(mapOf("#status" to "Status"))
             .expressionValues(mapOf(":status" to AttributeValue.fromN(UserOrganization.Status.Confirmed.toString())))
             .build()
         val iter = table.query(
@@ -106,6 +105,10 @@ class OrganizationRepository(private val client: DynamoDbEnhancedClient) : IOrga
         val request = BatchGetItemEnhancedRequest.builder().readBatches(batches.build()).build()
         return convert(client.batchGetItem(request), table)
     }
+
+    override fun findById(id: String): Organization {
+        return table.getItem(Key.builder().partitionValue(id).sortValue(id).build())
+    }
 }
 
 class UserOrganizationService(
@@ -129,9 +132,28 @@ class OrganizationService(
     private val vaultCollectionRepository: IVaultCollectionRepository,
     private val collectionCipherRepository: ICollectionCipherRepository
 ) {
+
+    fun getOrganization(principal: KotwardenPrincipal, id: String): Organization {
+        return organizationRepository.findById(id)
+    }
+
+    fun updateOrganization(
+        principal: KotwardenPrincipal,
+        id: String,
+        request: OrganizationUpdateRequestModel
+    ): Organization {
+        // TODO: 2022/7/25  permission check
+        val organization = organizationRepository.findById(id) ?: kError("Fail to find organization")
+        val resp = Organization.converter.toModel(request, organization)
+        organizationRepository.save(resp)
+        return resp
+    }
+
+
     fun createOrganization(principal: KotwardenPrincipal, request: OrganizationCreateRequestModel): Organization {
-        val organization = Organization()
+        val organization = Organization.converter.toModel(request)
         organization.id = ORGANIZATION_PREFIX + UUID.randomUUID().toString()
+
         organization.sk = organization.id
         organization.name = request.name
         organization.billingEmail = request.billingEmail
@@ -154,7 +176,7 @@ class OrganizationService(
         val vaultCollection = VaultCollection()
         vaultCollection.organizationId = organization.id
         vaultCollection.id = COLLECTION_PREFIX + UUID.randomUUID().toString()
-        vaultCollection.name = request.collectionName
+        vaultCollection.name = request.collectionName!!
         vaultCollection.createdAt = OffsetDateTime.now()
         vaultCollection.updatedAt = OffsetDateTime.now()
         vaultCollectionRepository.save(vaultCollection)
@@ -166,6 +188,7 @@ class OrganizationService(
     }
 
     fun updateCipherCollections(cipherId: String, request: CipherCollectionsRequestModel) {
+        // TODO: 2022/7/25 permission check
         collectionCipherRepository.updateCipherCollections(cipherId, request.collectionIds)
     }
 

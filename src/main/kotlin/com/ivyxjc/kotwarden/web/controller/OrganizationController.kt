@@ -184,7 +184,25 @@ class OrganizationController(
             }
             this.respond(HttpStatusCode.OK, json)
         }
-
     }
 
+    suspend fun getOrganization(id: String, ctx: ApplicationCall) {
+        ctx.apply {
+            val principal = kotwardenPrincipal(this)
+            val organization = organizationService.getOrganization(principal, id)
+            val resp = Organization.converter.toResponse(organization)
+            resp.usersGetPremium = true
+            this.respond(HttpStatusCode.OK, resp)
+        }
+    }
+
+    suspend fun updateOrganization(id: String, ctx: ApplicationCall) {
+        ctx.apply {
+            val principal = kotwardenPrincipal(this)
+            val request = this.receive<OrganizationUpdateRequestModel>()
+            val organization = organizationService.updateOrganization(principal, id, request)
+            this.respond(HttpStatusCode.OK, Organization.converter.toResponse(organization))
+        }
+
+    }
 }
