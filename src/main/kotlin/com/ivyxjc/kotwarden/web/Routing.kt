@@ -76,6 +76,10 @@ fun Routing.cipher(cipherController: CipherController, organizationController: O
                 val id = this.context.parameters.getOrFail<String>("id")
                 organizationController.updateCipherCollections(id, this.context)
             }
+            put("{id}/collections") {
+                val id = this.context.parameters.getOrFail<String>("id")
+                organizationController.updateCipherCollections(id, this.context)
+            }
             put("{id}") {
                 val id = this.context.parameters.getOrFail<String>("id")
                 cipherController.updateCipher(this.context, id)
@@ -144,6 +148,15 @@ fun Routing.organization(organizationController: OrganizationController) {
             get("") {
                 organizationController.listOrganizations(this.context)
             }
+            get("{id}") {
+                val id = this.context.parameters.getOrFail<String>("id")
+                organizationController.getOrganization(id, this.context)
+            }
+            put("{id}") {
+                val id = this.context.parameters.getOrFail<String>("id")
+                organizationController.updateOrganization(id, this.context)
+            }
+
             get("{id}/collections") {
                 val id = this.context.parameters.getOrFail<String>("id")
                 organizationController.listCollectionsByOrganization(id, this.context)
