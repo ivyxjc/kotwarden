@@ -11,7 +11,6 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
-import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest
 
 object ModuleConfig {
     private val log = LoggerFactory.getLogger(ModuleConfig::class.java)
@@ -76,11 +75,8 @@ object ModuleConfig {
             )
             .httpClient(client)
             .build()
-        val t2 = System.currentTimeMillis()
-        log.info("dynamodb client costs {}", t2 - t1)
-        c.describeTable(DescribeTableRequest.builder().tableName("resource").build())
-        log.info("dynamodb client first query costs {}", System.currentTimeMillis() - t2)
         bindSingleton { DynamoDbEnhancedClient.builder().dynamoDbClient(c).build() }
+        log.info("dynamodb client costs {}", System.currentTimeMillis() - t1)
     }
 
     internal val kodein = DI {
