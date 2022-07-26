@@ -23,9 +23,7 @@ abstract class KotlessAWS : RequestStreamHandler {
 
         private var prepared = false
         private val applicationEnvironment = commandLineEnvironment(arrayOf())
-        val engine = KotlessEngine(applicationEnvironment).also {
-            it.start()
-        }
+        val engine = KotlessEngine(applicationEnvironment)
     }
 
     abstract fun prepare(app: Application)
@@ -34,7 +32,7 @@ abstract class KotlessAWS : RequestStreamHandler {
         logger.info("start handle request")
         val startTime = System.currentTimeMillis()
         if (!prepared) {
-            prepare(engine.application)
+            engine.start(true)
             prepared = true
             logger.info("not prepared, prepare costs {}", System.currentTimeMillis() - startTime)
         } else {
