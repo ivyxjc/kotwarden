@@ -1,3 +1,4 @@
+.env
 .aws-sam
 gen
 .gradle

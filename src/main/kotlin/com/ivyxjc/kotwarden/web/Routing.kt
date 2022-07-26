@@ -1,16 +1,30 @@
 package com.ivyxjc.kotwarden.plugins
 
+import com.ivyxjc.kotwarden.Config
 import com.ivyxjc.kotwarden.web.controller.*
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.util.*
+import io.ktor.util.*
 
 fun Routing.health() {
     route("api") {
         get("health") {
             this.context.respond(HttpStatusCode.OK, "OK")
+        }
+        get("info") {
+            this.context.respond(
+                HttpStatusCode.OK, mapOf(
+                    "publicKey" to hex(Config.getPublicKey().encoded),
+                    "privateKey" to hex(Config.getPrivateKey().encoded),
+                    "corsHost" to Config.config.corsHost,
+                    "signUpAllowed" to Config.isSignupAllowed("").toString(),
+                    "kdfIterations" to Config.config.kdfIterations.toString(),
+                    "defaultValidity" to Config.config.defaultValidityHours.toString(),
+                )
+            )
         }
     }
 }

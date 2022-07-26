@@ -57,7 +57,7 @@ class Device {
     var twoFactorRemember: String? = null
 
     @get:DynamoDbAttribute("TTL")
-    var ttl: Long = OffsetDateTime.now().toEpochSecond() + Config.deviceTTL
+    var ttl: Long = OffsetDateTime.now().toEpochSecond() + Config.config.deviceTtl
 
     @get:DynamoDbAttribute("CreatedAt")
     lateinit var createdAt: OffsetDateTime

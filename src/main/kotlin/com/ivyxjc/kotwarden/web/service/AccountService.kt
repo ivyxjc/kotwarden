@@ -86,7 +86,7 @@ class AccountService(private val userRepository: UserRepository) {
     fun preLogin(preLoginRequest: PreLoginRequest): PreLoginResponse {
         val user = userRepository.findByEmail(preLoginRequest.email)
         val (kdfType, kdfIterations) = if (user == null) {
-            Pair(Config.kdf, Config.kdfIterations)
+            Pair(Config.config.kdf, Config.config.kdfIterations)
         } else {
             Pair(user.kdf, user.kdfIterations)
         }

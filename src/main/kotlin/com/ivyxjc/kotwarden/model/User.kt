@@ -64,10 +64,10 @@ class User {
     var salt: ByteArray = ByteArray(32)
 
     @get:DynamoDbAttribute("Kdf")
-    var kdf: Int = Config.kdf
+    var kdf: Int = Config.config.kdf
 
     @get:DynamoDbAttribute("KdfIterations")
-    var kdfIterations: Int = Config.kdfIterations
+    var kdfIterations: Int = Config.config.kdfIterations
 
 
     // TODO: 2022/6/21 default from config 

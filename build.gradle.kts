@@ -4,7 +4,7 @@ val ktor_version: String by project
 val kotlin_version: String by project
 val logback_version: String by project
 val kodeinVersion = "7.11.0"
-val dynamodbSdkVersion = "2.17.192"
+val dynamodbSdkVersion = "2.17.238"
 val mapstructVersion = "1.5.2.Final"
 val bouncyCastleVersion = "1.71"
 
@@ -67,6 +67,7 @@ dependencies {
     implementation("software.amazon.awssdk:dynamodb:$dynamodbSdkVersion")
     implementation("software.amazon.awssdk:dynamodb-enhanced:$dynamodbSdkVersion")
     implementation("software.amazon.awssdk:url-connection-client:$dynamodbSdkVersion")
+    implementation("software.amazon.awssdk:appconfigdata:$dynamodbSdkVersion")
 
     implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
 

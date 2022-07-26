@@ -1,8 +1,15 @@
 package com.ivyxjc.kotwarden
 
 
+import com.ivyxjc.kotwarden.util.decodeFromString
+import com.ivyxjc.kotwarden.util.isEmpty
 import io.github.cdimascio.dotenv.dotenv
 import io.ktor.server.application.*
+import io.ktor.server.config.*
+import software.amazon.awssdk.services.appconfigdata.AppConfigDataClient
+import software.amazon.awssdk.services.appconfigdata.model.GetLatestConfigurationRequest
+import software.amazon.awssdk.services.appconfigdata.model.GetLatestConfigurationResponse
+import software.amazon.awssdk.services.appconfigdata.model.StartConfigurationSessionRequest
 import java.security.KeyFactory
 import java.security.PrivateKey
 import java.security.PublicKey
@@ -18,46 +25,120 @@ val dotenv = dotenv {
     ignoreIfMissing = true
 }
 
+//1: local; 2: aws AppConfig
+typealias ConfigType = Int
+
+@kotlinx.serialization.Serializable
+data class KotwardenConfig(
+    val deviceTtl: Int = 120960,
+    val kdf: Int = 0,
+    val kdfIterations: Int = 10000,
+    val defaultValidityHours: Long = 2L,
+    val jwtIssuer: String = "kotwarden",
+    val jwtAudience: String = "audience",
+    val corsHost: String = "*",
+    val jwtPrivateKey: String,
+    val jwtPublicKey: String,
+    val signUpAllowed: Boolean = false
+)
+
+fun loadConfig(developmentMode: Boolean, type: ConfigType, config: ApplicationConfig): KotwardenConfig {
+    return if (developmentMode) {
+        KotwardenConfig(
+            deviceTtl = dotenv["DEVICE_TTL"]?.toInt() ?: (3600 * 24 * 14),
+            kdfIterations = dotenv["KDF_ITERATIONS"]?.toInt() ?: 10000,
+            defaultValidityHours = dotenv["DEFAULT_VALIDITY_HOURS"]?.toLong() ?: 2L,
+            jwtIssuer = dotenv["JWT_ISSUER"] ?: "kotwarden",
+            jwtAudience = dotenv["JWT_AUDIENCE"] ?: "audience",
+            corsHost = dotenv["CORS_HOST"] ?: "*",
+            jwtPrivateKey = dotenv["JWT_PRIVATE_KEY"]
+                ?: Application::class.java.getResource("/credentials/private_key_pkcs8.pem")?.readText()
+                ?: error("private key not found"),
+            jwtPublicKey = dotenv["JWT_PUBLIC_KEY"]
+                ?: Application::class.java.getResource("/credentials/public_key.pem")?.readText()
+                ?: error("public key not found")
+        )
+    } else if (type == 1) {
+        KotwardenConfig(
+            deviceTtl = dotenv["DEVICE_TTL"]?.toInt() ?: (3600 * 24 * 14),
+            kdfIterations = dotenv["KDF_ITERATIONS"]?.toInt() ?: 10000,
+            defaultValidityHours = dotenv["DEFAULT_VALIDITY_HOURS"]?.toLong() ?: 2L,
+            jwtIssuer = dotenv["JWT_ISSUER"] ?: "kotwarden",
+            jwtAudience = dotenv["JWT_AUDIENCE"] ?: "audience",
+            corsHost = dotenv["CORS_HOST"] ?: "*",
+            jwtPrivateKey = dotenv["JWT_PRIVATE_KEY"] ?: "",
+            jwtPublicKey = dotenv["JWT_PUBLIC_KEY"] ?: ""
+        )
+    } else {
+        loadAppConfig(config)
+    }
+}
+
 class Config {
     companion object {
-        const val deviceTTL = 3600 * 24 * 14
-        const val kdfIterations = 10000
-        const val kdf = 0
-        const val defaultValidityHours = 2L
-        const val issuer = "issuer"
-        const val audience = "bitwarden"
-        val corsHost = System.getenv("CORS_HOST") ?: "*"
-        val privateRsaKey: RSAPrivateKey = getPrivateKey() as RSAPrivateKey
-        val publicRsaKey: RSAPublicKey = getPublicKey() as RSAPublicKey
+        var config: KotwardenConfig = KotwardenConfig(jwtPrivateKey = "", jwtPublicKey = "")
         fun isSignupAllowed(email: String): Boolean {
-            // todo check whether sign up is allowed or not
-            return true
+            // todo dynamic check whether sign up is allowed or not
+            return config.signUpAllowed
+        }
+
+        fun getPrivateKey(): RSAPrivateKey {
+            return getPrivateKey(config.jwtPrivateKey) as RSAPrivateKey
+        }
+
+        fun getPublicKey(): RSAPublicKey {
+            return getPublicKey(config.jwtPublicKey) as RSAPublicKey
         }
     }
 }
 
-fun getPrivateKey(): PrivateKey {
-    val key: String = Application::class.java.getResource("/credentials/private_key_pkcs8.pem")?.readText()
-        ?: error("private key not found")
-    val privateKeyPEM = key
-        .replace("-----BEGIN PRIVATE KEY-----", "")
-        .replace(System.lineSeparator().toRegex(), "")
-        .replace("-----END PRIVATE KEY-----", "")
+fun getPrivateKey(privateKey: String): PrivateKey {
+    isEmpty(privateKey).let {
+        if (it) {
+            throw IllegalArgumentException("private key is empty")
+        }
+    }
+    val privateKeyPEM =
+        privateKey.replace("-----BEGIN PRIVATE KEY-----", "").replace(System.lineSeparator().toRegex(), "")
+            .replace("-----END PRIVATE KEY-----", "")
     val encoded = Base64.getDecoder().decode(privateKeyPEM)
     val spec = PKCS8EncodedKeySpec(encoded)
     val kf: KeyFactory = KeyFactory.getInstance("RSA")
     return kf.generatePrivate(spec)
 }
 
-fun getPublicKey(): PublicKey {
-    val key: String =
-        Application::class.java.getResource("/credentials/public_key.pem")?.readText() ?: error("public key not found")
-    val privateKeyPEM = key
-        .replace("-----BEGIN PUBLIC KEY-----", "")
-        .replace(System.lineSeparator().toRegex(), "")
-        .replace("-----END PUBLIC KEY-----", "")
+fun getPublicKey(publicKey: String): PublicKey {
+    isEmpty(publicKey).let {
+        if (it) {
+            throw IllegalArgumentException("public key is empty")
+        }
+    }
+    val privateKeyPEM =
+        publicKey.replace("-----BEGIN PUBLIC KEY-----", "").replace(System.lineSeparator().toRegex(), "")
+            .replace("-----END PUBLIC KEY-----", "")
     val encoded = Base64.getDecoder().decode(privateKeyPEM)
     val spec = X509EncodedKeySpec(encoded)
     val kf: KeyFactory = KeyFactory.getInstance("RSA")
     return kf.generatePublic(spec)
 }
+
+private var lastToken = ""
+fun loadAppConfig(config: ApplicationConfig): KotwardenConfig {
+    val client = AppConfigDataClient.builder().build()
+    val sessionRequest = StartConfigurationSessionRequest.builder()
+        .applicationIdentifier(config.property("kotwarden.config.application").getString())
+        .configurationProfileIdentifier(config.property("kotwarden.config.profile").getString())
+        .environmentIdentifier(config.property("kotwarden.config.environment").getString()).build()
+    val session = client.startConfigurationSession(sessionRequest)
+    lastToken = session.initialConfigurationToken()
+
+    val request = GetLatestConfigurationRequest.builder().configurationToken(lastToken).build()
+    val response: GetLatestConfigurationResponse = client.getLatestConfiguration(request)
+    lastToken = response.nextPollConfigurationToken()
+    var content: String? = null
+    if (response.configuration().asByteArray() != null && response.configuration().asByteArray().isNotEmpty()) {
+        content = response.configuration().asUtf8String()
+    }
+    return decodeFromString<KotwardenConfig>(content!!)!!
+}
+

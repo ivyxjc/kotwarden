@@ -81,9 +81,13 @@ class DeviceService(private val deviceRepository: DeviceRepository) {
         //@formatter:off
         return JWT.create()
             .withNotBefore(Date(OffsetDateTime.now().toInstant().toEpochMilli()))
-            .withExpiresAt(Date(OffsetDateTime.now().plusHours(Config.defaultValidityHours).toInstant().toEpochMilli()))
-            .withAudience(Config.audience)
-            .withIssuer(Config.issuer)
+            .withExpiresAt(
+                Date(
+                    OffsetDateTime.now().plusHours(Config.config.defaultValidityHours).toInstant().toEpochMilli()
+                )
+            )
+            .withAudience(Config.config.jwtAudience)
+            .withIssuer(Config.config.jwtIssuer)
             .withSubject(user.id)
             .withClaim("premium", true)
             .withClaim("id", user.id)
@@ -97,7 +101,12 @@ class DeviceService(private val deviceRepository: DeviceRepository) {
             .withClaim("device", device.id)
             .withClaim("scope", scope)
             .withClaim("amr", mutableListOf("Application"))
-            .sign(Algorithm.RSA256(Config.publicRsaKey, Config.privateRsaKey)) to Config.defaultValidityHours * 3600L
+            .sign(
+                Algorithm.RSA256(
+                    Config.getPublicKey(),
+                    Config.getPrivateKey()
+                )
+            ) to Config.config.defaultValidityHours * 3600L
         //@formatter:on
     }
 }
