@@ -26,7 +26,6 @@ import org.kodein.di.instance
 fun main(args: Array<String>): Unit = EngineMain.main(args)
 
 fun Application.main() {
-    environment.developmentMode
     val configType = environment.config.property("kotwarden.config.type")
     this@main.log.info("config type is {}", configType.getString())
     Config.config = loadConfig(environment.developmentMode, configType.getString().toInt(), environment.config)

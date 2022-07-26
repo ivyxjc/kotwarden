@@ -22,10 +22,8 @@ abstract class KotlessAWS : RequestStreamHandler {
         private val logger = LoggerFactory.getLogger(KotlessAWS::class.java)
 
         private var prepared = false
-
-        val engine = KotlessEngine(applicationEngineEnvironment {
-            log = logger
-        }).also {
+        private val applicationEnvironment = commandLineEnvironment(arrayOf())
+        val engine = KotlessEngine(applicationEnvironment).also {
             it.start()
         }
     }
