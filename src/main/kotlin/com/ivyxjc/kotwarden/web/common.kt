@@ -14,12 +14,10 @@ fun kotwardenPrincipal(call: ApplicationCall): KotwardenPrincipal {
     return KotwardenPrincipal(id, email)
 }
 
-typealias ErrorCode = String
-
-fun kError(status: HttpStatusCode, code: ErrorCode, message: String) {
-    throw IllegalStateException(message.toString())
+fun kError(status: HttpStatusCode, message: String): Nothing {
+    throw KotwardenException(status, message)
 }
 
 fun kError(message: String): Nothing {
-    throw IllegalStateException(message.toString())
+    throw KotwardenException(HttpStatusCode.InternalServerError, message)
 }

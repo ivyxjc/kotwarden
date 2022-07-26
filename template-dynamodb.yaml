@@ -61,17 +61,19 @@ Resources:
             AttributeDefinitions:
                 -   AttributeName: Id
                     AttributeType: S
+                -   AttributeName: UserId
+                    AttributeType: S
                 -   AttributeName: RefreshToken
                     AttributeType: S
             KeySchema:
                 -   AttributeName: Id
                     KeyType: HASH
+                -   AttributeName: UserId
+                    KeyType: RANGE
             TimeToLiveSpecification:
                 AttributeName: TTL
                 Enabled: true
-            ProvisionedThroughput:
-                ReadCapacityUnits: 1
-                WriteCapacityUnits: 1
+            BillingMode: PAY_PER_REQUEST
             GlobalSecondaryIndexes:
                 -   IndexName: "RefreshToken-Index"
                     KeySchema:
@@ -79,9 +81,6 @@ Resources:
                             KeyType: HASH
                     Projection:
                         ProjectionType: ALL
-                    ProvisionedThroughput:
-                        ReadCapacityUnits: 1
-                        WriteCapacityUnits: 1
     UserOrganizationTable:
         Type: AWS::DynamoDB::Table
         Properties:

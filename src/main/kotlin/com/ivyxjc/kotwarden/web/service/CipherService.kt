@@ -92,7 +92,7 @@ class CipherRepository(private val client: DynamoDbEnhancedClient) : ICipherRepo
     }
 
     override fun updateCipherById(cipher: Cipher) {
-        val storedCipher = findById(cipher.id)!! ?: kError("Fail to share the cipher")
+        val storedCipher = findById(cipher.id) ?: kError("Fail to share the cipher")
         val deleteRequest = TransactDeleteItemEnhancedRequest.builder()
             .key(Key.builder().partitionValue(storedCipher.ownerId).sortValue(cipher.id).build()).build()
         val insertRequest = TransactPutItemEnhancedRequest.builder(Cipher::class.java).item(cipher).build();

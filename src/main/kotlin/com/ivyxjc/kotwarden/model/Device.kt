@@ -6,10 +6,7 @@ import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
 import org.mapstruct.factory.Mappers
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.*
 import java.time.OffsetDateTime
 
 @DynamoDbBean
@@ -39,7 +36,7 @@ class Device {
     @get:DynamoDbAttribute("Id")
     lateinit var id: String
 
-
+    @get:DynamoDbSortKey
     @get:DynamoDbAttribute("UserId")
     lateinit var userId: String
 

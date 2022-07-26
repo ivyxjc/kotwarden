@@ -57,8 +57,11 @@ class UserRepository(private val client: DynamoDbEnhancedClient) : IUserReposito
     }
 
     override fun listByIds(ids: List<String>): List<User> {
+        if (ids.isEmpty()) {
+            return listOf()
+        }
         val batches = ReadBatch.builder(User::class.java).mappedTableResource(table)
-        ids.forEach { it -> batches.addGetItem(Key.builder().partitionValue(it).sortValue(it).build()) }
+        ids.forEach { batches.addGetItem(Key.builder().partitionValue(it).sortValue(it).build()) }
         val request = BatchGetItemEnhancedRequest.builder().readBatches(batches.build()).build()
         return convert(client.batchGetItem(request), table)
     }

@@ -5,6 +5,7 @@ import com.auth0.jwt.algorithms.Algorithm
 import com.ivyxjc.kotwarden.Config
 import com.ivyxjc.kotwarden.ModuleConfig
 import com.ivyxjc.kotwarden.plugins.*
+import com.ivyxjc.kotwarden.web.KotwardenException
 import com.ivyxjc.kotwarden.web.controller.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
@@ -46,9 +47,14 @@ fun Application.main() {
     }
     install(StatusPages) {
         exception<Throwable> { call, cause ->
-            this@main.log.error("inner error", cause)
-            call.respondText(text = cause.message ?: "", status = HttpStatusCode.InternalServerError)
-            throw cause
+            if (cause is KotwardenException) {
+                this@main.log.warn("kotwarden exception", cause)
+                call.respondText(text = cause.message ?: "", status = cause.httpCode)
+            } else {
+                this@main.log.error("inner error", cause)
+                call.respondText(text = cause.message ?: "", status = HttpStatusCode.InternalServerError)
+                throw cause
+            }
         }
     }
     install(Routing) {

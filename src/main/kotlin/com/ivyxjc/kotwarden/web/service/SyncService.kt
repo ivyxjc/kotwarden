@@ -6,6 +6,7 @@ import com.ivyxjc.kotwarden.util.format
 import com.ivyxjc.kotwarden.web.model.KotwardenPrincipal
 import com.ivyxjc.kotwarden.web.model.SyncResponseModel
 import com.ivyxjc.kotwarden.web.notAuthorized
+import io.ktor.http.*
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -20,7 +21,7 @@ class SyncService(
     fun sync(principal: KotwardenPrincipal, userId: String): SyncResponseModel {
         val resp = SyncResponseModel()
         resp.xyObject = "sync"
-        val user = accountService.findById(principal.id) ?: notAuthorized("User not found")
+        val user = accountService.findById(principal.id) ?: notAuthorized(HttpStatusCode.Unauthorized, "User not found")
 
         resp.profile = User.converter.toProfileResponse(user)
         resp.profile!!.organizations =

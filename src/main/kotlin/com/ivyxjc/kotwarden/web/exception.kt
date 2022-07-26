@@ -1,10 +1,25 @@
 package com.ivyxjc.kotwarden.web
 
+import io.ktor.http.*
 
-class NotAuthorizedException : RuntimeException {
-    constructor(message: String, ex: Exception?) : super(message, ex)
-    constructor(message: String) : super(message)
-    constructor(ex: Exception) : super(ex)
+
+open class KotwardenException : RuntimeException {
+    val httpCode: HttpStatusCode
+
+    constructor(code: HttpStatusCode, message: String, ex: Exception) : super(message, ex) {
+        this.httpCode = code
+    }
+
+    constructor(code: HttpStatusCode, message: String) : super(message) {
+        this.httpCode = code
+    }
 }
 
-fun notAuthorized(message: Any): Nothing = throw NotAuthorizedException(message.toString())
+class NotAuthorizedException : KotwardenException {
+    constructor(code: HttpStatusCode, message: String, ex: Exception) : super(code, message, ex)
+
+    constructor(code: HttpStatusCode, message: String) : super(code, message)
+
+}
+
+fun notAuthorized(code: HttpStatusCode, message: Any): Nothing = throw NotAuthorizedException(code, message.toString())

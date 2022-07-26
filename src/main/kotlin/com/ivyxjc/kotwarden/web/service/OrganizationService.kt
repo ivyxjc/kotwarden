@@ -100,6 +100,9 @@ class OrganizationRepository(private val client: DynamoDbEnhancedClient) : IOrga
     }
 
     override fun listByOrganizationIds(organizationIds: List<String>): List<Organization> {
+        if (organizationIds.isEmpty()) {
+            return listOf()
+        }
         val batches = ReadBatch.builder(Organization::class.java).mappedTableResource(table)
         organizationIds.forEach { it -> batches.addGetItem(Key.builder().partitionValue(it).sortValue(it).build()) }
         val request = BatchGetItemEnhancedRequest.builder().readBatches(batches.build()).build()

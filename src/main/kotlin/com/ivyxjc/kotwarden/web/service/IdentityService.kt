@@ -4,8 +4,10 @@ import com.ivyxjc.kotwarden.model.Device
 import com.ivyxjc.kotwarden.model.DeviceType
 import com.ivyxjc.kotwarden.model.User
 import com.ivyxjc.kotwarden.util.verifyPassword
+import com.ivyxjc.kotwarden.web.kError
 import com.ivyxjc.kotwarden.web.model.IdentityConnectData
 import com.ivyxjc.kotwarden.web.model.LoginResponse
+import io.ktor.http.*
 
 interface IIdentityService {
     fun refreshToken(connectData: IdentityConnectData): LoginResponse
@@ -20,8 +22,10 @@ class IdentityService(private val userRepository: UserRepository, private val de
         val scopeList = listOf("api", "offline_access")
 
         // TODO: 2022/6/20  RateLimit the refresh token
-        val device = deviceService.findByRefreshToken(connectData.refreshToken!!)
-            ?: TODO("throw 401, device not found")
+        val device: Device = deviceService.findByRefreshToken(connectData.refreshToken!!) ?: kError(
+            HttpStatusCode.Unauthorized,
+            "Invalid refresh token"
+        )
         val user = userRepository.findById(device.userId) ?: TODO("500, fail to get user")
         val tokenPair = deviceService.refreshToken(device, user, scopeList)
         deviceService.save(device)
