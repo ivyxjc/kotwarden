@@ -1,5 +1,21 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
+
+
+Parameters:
+    AppName:
+        Type: String
+        Description: Name of the application
+        Default: 'kotwarden'
+    ProfileName:
+        Type: String
+        Description: Name of the application
+        Default: 'config'
+    Environment:
+        Type: String
+        Description: Environment
+        Default: 'prod'
+
 Resources:
     KotWardenHttpApi:
         Type: AWS::Serverless::HttpApi
@@ -22,6 +38,43 @@ Resources:
             MemorySize: 512
             Policies:
                 - AmazonDynamoDBFullAccess
+                -   Version: '2012-10-17'
+                    Statement:
+                        -   Effect: Allow
+                            Action:
+                                - appconfig:GetConfiguration
+                                - appconfig:GetLatestConfiguration
+                                - appconfig:GetHostedConfigurationVersion
+                                - appconfig:StartConfigurationSession
+                            Resource:
+                                -   Fn::Join:
+                                        - ''
+                                        -   - 'arn:aws:appconfig:*:*:application/'
+                                            -   Ref: AppConfigLambdaApplication
+                                -   Fn::Join:
+                                        - ''
+                                        -   - 'arn:aws:appconfig:*:*:application/'
+                                            -   Ref: AppConfigLambdaApplication
+                                            - '/configurationprofile/'
+                                            -   Ref: AppConfigLambdaConfigurationProfile
+                                -   Fn::Join:
+                                        - ''
+                                        -   - 'arn:aws:appconfig:*:*:application/'
+                                            -   Ref: AppConfigLambdaApplication
+                                            - '/environment/'
+                                            -   Ref: AppConfigLambdaEnvironment
+                                -   Fn::Join:
+                                        - ''
+                                        -   - 'arn:aws:appconfig:*:*:application/'
+                                            -   Ref: AppConfigLambdaApplication
+                                            - '/configurationprofile/*/hostedconfigurationversion/*'
+                                -   Fn::Join:
+                                        - ''
+                                        -   - 'arn:aws:appconfig:*:*:application/'
+                                            -   Ref: AppConfigLambdaApplication
+                                            - '/environment/'
+                                            -   Ref: AppConfigLambdaEnvironment
+                                            - '*/configuration/*'
             Events:
                 ApiEvent:
                     Type: HttpApi
@@ -36,3 +89,28 @@ Resources:
                         Name: Kotwarden-Schedule
                         Enabled: true
                         Schedule: "rate(5 minutes)"
+
+    AppConfigLambdaApplication:
+        Type: 'AWS::AppConfig::Application'
+        Properties:
+            Name: !Ref AppName
+    AppConfigLambdaEnvironment:
+        Type: 'AWS::AppConfig::Environment'
+        Properties:
+            Name: !Ref Environment
+            ApplicationId: !Ref AppConfigLambdaApplication
+    AppConfigLambdaConfigurationProfile:
+        Type: 'AWS::AppConfig::ConfigurationProfile'
+        Properties:
+            Name: !Ref ProfileName
+            ApplicationId: !Ref AppConfigLambdaApplication
+            LocationUri: hosted
+    AppConfigLambdaDeploymentStrategy:
+        Type: AWS::AppConfig::DeploymentStrategy
+        Properties:
+            Name: !Ref AppName
+            DeploymentDurationInMinutes: 0
+            FinalBakeTimeInMinutes: 1
+            GrowthFactor: 100
+            GrowthType: LINEAR
+            ReplicateTo: NONE
