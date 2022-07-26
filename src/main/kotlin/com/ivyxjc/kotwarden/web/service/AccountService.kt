@@ -12,6 +12,7 @@ import com.ivyxjc.kotwarden.web.model.KdfRequestModel
 import com.ivyxjc.kotwarden.web.model.PreLoginRequest
 import com.ivyxjc.kotwarden.web.model.PreLoginResponse
 import com.ivyxjc.kotwarden.web.model.RegisterRequest
+import io.ktor.http.*
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient
 import software.amazon.awssdk.enhanced.dynamodb.Key
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema
@@ -107,7 +108,7 @@ class AccountService(private val userRepository: UserRepository) {
                 user.sk = user.id
                 userRepository.save(user)
             } else {
-                TODO("throw http exception if user email is not allowed to sign up")
+                kError(HttpStatusCode.NotImplemented, "Signup is not allowed for this email")
             }
         }
     }
