@@ -27,8 +27,7 @@ class DeviceRepository(private val client: DynamoDbEnhancedClient) : IDeviceRepo
     private val table = client.table(Device.TABLE_NAME, schema)
 
     override fun findByIdAndUser(id: String, userId: String): Device? {
-        val key = Key.builder().partitionValue(id).build()
-        // TODO: 2022/6/21 query with userId
+        val key = Key.builder().partitionValue(id).sortValue(userId).build()
         return table.getItem(key)
     }
 
