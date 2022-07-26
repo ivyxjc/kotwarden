@@ -44,7 +44,8 @@ configurations.implementation {
 }
 
 dependencies {
-    implementation("ch.qos.logback:logback-classic:$logback_version")
+    runtimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:2.17.1")
+    runtimeOnly("com.amazonaws:aws-lambda-java-log4j2:1.5.1")
 
     implementation("io.ktor:ktor-server-core-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-auth-jvm:$ktor_version")
