@@ -134,6 +134,9 @@ fun Routing.cipher(cipherController: CipherController, organizationController: O
                 val organizationId = parameters.getOrFail<String>("organizationId")
                 organizationController.listOrganizationDetail(organizationId, this.context)
             }
+            post("purge") {
+                cipherController.purge(this.context)
+            }
         }
     }
 }

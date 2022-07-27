@@ -52,3 +52,8 @@ data class KdfRequestModel(
     val otp: String? = null,
     val secret: String? = null
 )
+
+@kotlinx.serialization.Serializable
+data class SensitiveActionRequestModel(
+    val masterPasswordHash: String
+)

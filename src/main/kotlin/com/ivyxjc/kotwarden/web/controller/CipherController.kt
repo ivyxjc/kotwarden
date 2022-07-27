@@ -6,10 +6,7 @@ import com.ivyxjc.kotwarden.util.isEmpty
 import com.ivyxjc.kotwarden.util.isNotEmpty
 import com.ivyxjc.kotwarden.web.kError
 import com.ivyxjc.kotwarden.web.kotwardenPrincipal
-import com.ivyxjc.kotwarden.web.model.CipherBulkDeleteRequestModel
-import com.ivyxjc.kotwarden.web.model.CipherCreateRequestModel
-import com.ivyxjc.kotwarden.web.model.CipherRequestModel
-import com.ivyxjc.kotwarden.web.model.ImportCiphersRequestModel
+import com.ivyxjc.kotwarden.web.model.*
 import com.ivyxjc.kotwarden.web.service.CipherService
 import com.ivyxjc.kotwarden.web.service.CollectionService
 import com.ivyxjc.kotwarden.web.service.toSome
@@ -19,8 +16,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 
 class CipherController(
-    private val cipherService: CipherService,
-    private val collectionService: CollectionService
+    private val cipherService: CipherService, private val collectionService: CollectionService
 ) {
 
     suspend fun getCipher(id: String, ctx: ApplicationCall) {
@@ -114,6 +110,15 @@ class CipherController(
             val principal = kotwardenPrincipal(this)
             val request = this.receive<ImportCiphersRequestModel>()
             cipherService.importCiphers(principal, request)
+            this.respond(HttpStatusCode.OK)
+        }
+    }
+
+    suspend fun purge(ctx: ApplicationCall) {
+        ctx.apply {
+            val principal = kotwardenPrincipal(this)
+            val request = ctx.receive<SensitiveActionRequestModel>()
+            cipherService.purge(principal.id, request)
             this.respond(HttpStatusCode.OK)
         }
     }

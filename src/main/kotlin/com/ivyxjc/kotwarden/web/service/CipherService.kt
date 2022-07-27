@@ -6,6 +6,7 @@ import com.ivyxjc.kotwarden.model.Folder
 import com.ivyxjc.kotwarden.util.*
 import com.ivyxjc.kotwarden.web.kError
 import com.ivyxjc.kotwarden.web.model.*
+import io.ktor.http.*
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient
 import software.amazon.awssdk.enhanced.dynamodb.Key
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema
@@ -13,11 +14,14 @@ import software.amazon.awssdk.enhanced.dynamodb.model.*
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
+import kotlin.collections.set
 
 interface ICipherRepository {
     fun save(cipher: Cipher)
 
     fun delete(ownerId: String, id: String): Cipher?
+
+    fun batchDelete(ownerId: String, ids: List<String>)
 
     fun findByUser(userId: String): List<Cipher>
 
@@ -46,6 +50,22 @@ class CipherRepository(private val client: DynamoDbEnhancedClient) : ICipherRepo
 
     override fun delete(ownerId: String, id: String): Cipher? {
         return table.deleteItem(Key.builder().partitionValue(ownerId).sortValue(id).build())
+    }
+
+    override fun batchDelete(ownerId: String, ids: List<String>) {
+        var batches = WriteBatch.builder(Cipher::class.java).mappedTableResource(table)
+        ids.forEachIndexed { idx, id ->
+            batches.addDeleteItem(Key.builder().partitionValue(ownerId).sortValue(id).build())
+            if (idx % 25 == 0) {
+                val request = BatchWriteItemEnhancedRequest.builder().writeBatches(batches.build()).build()
+                client.batchWriteItem(request)
+                batches = WriteBatch.builder(Cipher::class.java).mappedTableResource(table)
+            }
+        }
+        if (ids.size % 25 != 0) {
+            val request = BatchWriteItemEnhancedRequest.builder().writeBatches(batches.build()).build()
+            client.batchWriteItem(request)
+        }
     }
 
     override fun findByUser(userId: String): List<Cipher> {
@@ -123,9 +143,9 @@ class CipherRepository(private val client: DynamoDbEnhancedClient) : ICipherRepo
 
 class CipherService(
     private val cipherRepository: ICipherRepository,
-    private val vaultCollectionRepository: IVaultCollectionRepository,
+    private val userRepository: IUserRepository,
     private val folderService: FolderService,
-    private val organizationService: OrganizationService,
+    private val folderRepository: IFolderRepository,
     private val userOrganizationService: UserOrganizationService,
     private val userCollectionRepository: IUserCollectionRepository,
     private val collectionCipherRepository: ICollectionCipherRepository
@@ -219,7 +239,6 @@ class CipherService(
             it.folderId = map[idx]
             createUpdateCipherFromRequest(newCipher(it.type, it.name), it, kotwardenPrincipal = kotwardenPrincipal)
         }
-
     }
 
     fun listAllByUser(userId: String): List<Cipher> {
@@ -245,13 +264,25 @@ class CipherService(
         return res
     }
 
-
     fun findById(userId: String, cipherId: String): Cipher? {
         return cipherRepository.findByOwnerAndId(userId, cipherId)
     }
 
     fun listByOrganization(organizationId: String): List<Cipher> {
         return cipherRepository.listByOwnerId(organizationId)
+    }
+
+    fun purge(userId: String, request: SensitiveActionRequestModel) {
+        val user = userRepository.findById(userId) ?: kError(HttpStatusCode.Forbidden, "User does not exists")
+        if (!verifyPassword(request.masterPasswordHash, user.salt, user.masterPasswordHash!!, user.kdfIterations)) {
+            kError(HttpStatusCode.Forbidden, "Invalid Password")
+        }
+        val ciphers = cipherRepository.findByUser(userId)
+        val folders = folderService.listByUser(userId)
+        cipherRepository.batchDelete(user.id, ciphers.map { it.id })
+        folders.forEach {
+            folderRepository.deleteById(it.id, it.userId)
+        }
     }
 
     private fun createUpdateCipherFromRequest(
