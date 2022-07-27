@@ -82,7 +82,7 @@ Resources:
                         ApiId: !Ref 'KotWardenHttpApi'
                         Method: ANY
                         Path: /{proxy+}
-                        TimeoutInMillis: 5000
+                        TimeoutInMillis: 15000
                 ScheduleEvent:
                     Type: Schedule
                     Properties:

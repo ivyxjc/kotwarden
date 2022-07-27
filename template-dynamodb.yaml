@@ -19,9 +19,7 @@ Resources:
                     KeyType: HASH
                 -   AttributeName: SK
                     KeyType: RANGE
-            ProvisionedThroughput:
-                ReadCapacityUnits: 1
-                WriteCapacityUnits: 1
+            BillingMode: PAY_PER_REQUEST
             GlobalSecondaryIndexes:
                 -   IndexName: "SK-Index"
                     KeySchema:
@@ -31,18 +29,12 @@ Resources:
                             KeyType: RANGE
                     Projection:
                         ProjectionType: ALL
-                    ProvisionedThroughput:
-                        ReadCapacityUnits: 1
-                        WriteCapacityUnits: 1
                 -   IndexName: "Email-Index"
                     KeySchema:
                         -   AttributeName: Email
                             KeyType: HASH
                     Projection:
                         ProjectionType: ALL
-                    ProvisionedThroughput:
-                        ReadCapacityUnits: 1
-                        WriteCapacityUnits: 1
                 -   IndexName: "Folder-SK-Index"
                     KeySchema:
                         -   AttributeName: FolderId
@@ -51,9 +43,6 @@ Resources:
                             KeyType: RANGE
                     Projection:
                         ProjectionType: ALL
-                    ProvisionedThroughput:
-                        ReadCapacityUnits: 1
-                        WriteCapacityUnits: 1
     DeviceTable:
         Type: AWS::DynamoDB::Table
         Properties:
