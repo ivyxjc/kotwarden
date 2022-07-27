@@ -7,6 +7,7 @@ import com.ivyxjc.kotwarden.util.verifyPassword
 import com.ivyxjc.kotwarden.web.kError
 import com.ivyxjc.kotwarden.web.model.IdentityConnectData
 import com.ivyxjc.kotwarden.web.model.LoginResponse
+import com.ivyxjc.kotwarden.web.notAuthorized
 import io.ktor.http.*
 
 interface IIdentityService {
@@ -23,8 +24,7 @@ class IdentityService(private val userRepository: UserRepository, private val de
 
         // TODO: 2022/6/20  RateLimit the refresh token
         val device: Device = deviceService.findByRefreshToken(connectData.refreshToken!!) ?: kError(
-            HttpStatusCode.Unauthorized,
-            "Invalid refresh token"
+            HttpStatusCode.Unauthorized, "Invalid refresh token"
         )
         val user = userRepository.findById(device.userId) ?: TODO("500, fail to get user")
         val tokenPair = deviceService.refreshToken(device, user, scopeList)
@@ -47,7 +47,7 @@ class IdentityService(private val userRepository: UserRepository, private val de
     override fun passwordLogin(connectData: IdentityConnectData): LoginResponse {
         val scope = connectData.scope
         if (scope != "api offline_access") {
-            error("Scope not supported")
+            kError(HttpStatusCode.BadRequest, "Scope not supported")
         }
         val scopeVec = listOf("api", "offline_access")
         // TODO: 2022/6/20 RateLimit the login
@@ -56,23 +56,22 @@ class IdentityService(private val userRepository: UserRepository, private val de
         // Check password
         val check = verifyPassword(connectData.password!!, user.salt, user.masterPasswordHash!!, user.kdfIterations)
         if (!check) {
-            error("password is incorrect")
+            notAuthorized(HttpStatusCode.Unauthorized, "password is incorrect")
         }
         // Check whether the user is disabled or not
         if (!user.enabled) {
-            error("")
+            notAuthorized(HttpStatusCode.Forbidden, "The account is disabled.")
         }
+
+        // TODO: 2022/6/21 check whether user is verified or not, send verify email if user is not verified
 
         val devicePair = getDevice(connectData, user)
         val device = devicePair.first
         if (devicePair.second) {
-            // TODO: 2022/6/21 new device login
+            // TODO: 2022/6/21 new device login (send new device email etc.)
         }
         val tokenPair = deviceService.refreshToken(device, user, listOf())
         deviceService.save(device)
-
-
-        // TODO: 2022/6/21 Send verify email if user is not verified
 
         return LoginResponse(
             accessToken = tokenPair.first,
