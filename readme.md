@@ -8,9 +8,13 @@
 
 # Top-level design
 
+HTTP API: AWS API Gateway --> AWS Lambda
+
+DATABASE: DynamoDB
+
 # Deployment
 
-## Deploy mongodb
+## Deploy dynamodb
 
 ```shell
 sam build -t template-dynamodb.yaml --config-file samconfig-dynamodb.toml
