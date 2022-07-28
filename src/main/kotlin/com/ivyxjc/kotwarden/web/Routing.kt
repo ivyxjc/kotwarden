@@ -3,6 +3,7 @@ package com.ivyxjc.kotwarden.plugins
 import com.ivyxjc.kotwarden.Config
 import com.ivyxjc.kotwarden.web.controller.*
 import io.ktor.http.*
+import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -26,6 +27,13 @@ fun Routing.health() {
                 )
             )
         }
+    }
+}
+
+fun Routing.icon() {
+    get("icons/{domain}/icon.png") {
+        val domain = this.context.parameters.getOrFail<String>("domain")
+        call.respondRedirect("https://icons.bitwarden.net/${domain}/icon.png")
     }
 }
 
