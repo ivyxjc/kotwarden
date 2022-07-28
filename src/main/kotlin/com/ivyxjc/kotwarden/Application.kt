@@ -40,12 +40,24 @@ fun Application.main() {
     install(CORS) {
         val corsHost = Config.config.corsHost
         corsHost.split(";").forEach {
-            if (it.startsWith("http://")) {
-                allowHost(it.substring(7), schemes = listOf("https"))
-            } else if (it.startsWith("https://")) {
-                allowHost(it.substring(8), schemes = listOf("https"))
-            } else {
-                allowHost(it, schemes = listOf("http", "https"))
+            val splits = it.split("://")
+            if (it == "*") {
+                anyHost()
+            }
+            if (splits.isNotEmpty()) {
+                when (splits.size) {
+                    1 -> {
+                        allowHost(splits[0], schemes = listOf("https"))
+                    }
+
+                    2 -> {
+                        allowHost(splits[1], schemes = listOf(splits[0]))
+                    }
+
+                    else -> {
+                        error("Fail to add cors host: $it")
+                    }
+                }
             }
         }
         allowMethod(HttpMethod.Put)
@@ -73,6 +85,7 @@ fun Application.main() {
     }
     install(Routing) {
         health()
+        icon()
         account(accountController)
         identity(identityController)
         sync(syncController)
@@ -93,8 +106,7 @@ fun Application.main() {
         jwt("auth-jwt") {
             verifier(
                 JWT.require(Algorithm.RSA256(Config.getPublicKey(), Config.getPrivateKey()))
-                    .withAudience(Config.config.jwtAudience)
-                    .withIssuer(Config.config.jwtIssuer).build()
+                    .withAudience(Config.config.jwtAudience).withIssuer(Config.config.jwtIssuer).build()
             )
             validate { credentials ->
                 if (credentials.payload.getClaim("id").asString() != "") {
