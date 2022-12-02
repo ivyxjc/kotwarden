@@ -100,6 +100,7 @@ fun Application.main() {
             isLenient = true
             ignoreUnknownKeys = true
             encodeDefaults = true
+            explicitNulls = false
         })
     }
     install(Authentication) {

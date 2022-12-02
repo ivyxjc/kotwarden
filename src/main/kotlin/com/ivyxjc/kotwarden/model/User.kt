@@ -74,6 +74,10 @@ class User {
     @get:DynamoDbAttribute("Enabled")
     var enabled: Boolean = true
 
+    // infer whether client should re-sign in
+    @get:DynamoDbAttribute("SecurityStamp")
+    var securityStamp: String? = null
+
     init {
         SecureRandom().nextBytes(this.salt)
     }
@@ -94,7 +98,8 @@ interface UserConverter {
     @Mappings(
         Mapping(target = "xyObject", constant = "profile"),
         Mapping(target = "premium", constant = "true"),
-        Mapping(target = "premiumFromOrganization", constant = "true")
+        Mapping(target = "premiumFromOrganization", constant = "true"),
+        Mapping(target = "privateKey", source = "encryptedPrivateKey")
     )
     fun toProfileResponse(user: User): ProfileResponseModel
 }

@@ -106,6 +106,7 @@ class AccountService(private val userRepository: UserRepository) {
                 user.masterPasswordHash = hashPassword(registerReq.masterPasswordHash, user.salt, user.kdfIterations)
                 user.id = USER_PREFIX + UUID.randomUUID().toString()
                 user.sk = user.id
+                user.securityStamp = UUID.randomUUID().toString()
                 userRepository.save(user)
             } else {
                 kError(HttpStatusCode.NotImplemented, "Signup is not allowed for this email")

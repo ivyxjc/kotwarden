@@ -24,6 +24,7 @@ class SyncService(
         val user = accountService.findById(principal.id) ?: notAuthorized(HttpStatusCode.Unauthorized, "User not found")
 
         resp.profile = User.converter.toProfileResponse(user)
+        resp.profile!!.emailVerified = true
         resp.profile!!.organizations =
             organizationService.listByUserId(user.id).map {
                 val resp = Organization.converter.toProfileResponse(it.second)

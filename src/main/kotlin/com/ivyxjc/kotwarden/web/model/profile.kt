@@ -9,12 +9,14 @@ typealias OrganizationUserType = Int
 
 @kotlinx.serialization.Serializable
 data class ProfileResponseModel(
+    @SerialName("_status")
+    private val status: Int = 0,
     @SerialName("object")
     val xyObject: String? = null,
     val id: String? = null,
     val name: String? = null,
     val email: String? = null,
-    val emailVerified: Boolean? = null,
+    var emailVerified: Boolean? = null,
     val premium: Boolean? = null,
     val premiumFromOrganization: Boolean? = null,
     val masterPasswordHint: String? = null,
